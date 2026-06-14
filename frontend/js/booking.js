@@ -3,7 +3,6 @@ let selectedShow = null, selectedSeats = [], selectedSeatData = [], lockInterval
 let promoDiscount = 0, promoCodeId = null, razorpayOrder = null
 const eventId = new URLSearchParams(location.search).get('id')
 
-|| window.supabase?.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY) }
 
 async function loadEvent() {
   if (!eventId) { document.getElementById('eventDetail').innerHTML = '<div class="alert alert-danger">No event specified.</div>'; return }
@@ -166,5 +165,4 @@ function showSuccess(id, amt) {
 }
 
 document.addEventListener('DOMContentLoaded', loadEvent)
-document.getElementById('logoutBtn')?.addEventListener('click', async (e) => { e.preventDefault(); await releaseSeats(); const sb=getSB(); await sb.auth.signOut(); localStorage.removeItem('sb-token'); localStorage.removeItem('sb-user'); location.href='/' })
 window.addEventListener('beforeunload', () => releaseSeats())

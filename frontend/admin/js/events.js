@@ -8,7 +8,7 @@ async function loadEvents() {
   const t = document.getElementById('eventsTable')
   try {
     const events = await API.adminEvents('list')
-    t.innerHTML = (events||[]).map(e => `<tr><td>${e.title}</td><td>${e.category||'-'}</td><td><span class="badge badge-${e.status==='Active'?'success':'warning'}">${e.status||'Draft'}</span></td><td>${new Date(e.created_at).toLocaleDateString()}</td>
+    t.innerHTML = (events||[]).map(e => `<tr><td>${e.title}</td><td>${e.category||'-'}</td><td><span class="badge badge-${e.status==='Published'?'success':'warning'}">${e.status||'Draft'}</span></td><td>${new Date(e.created_at).toLocaleDateString()}</td>
       <td><button class="btn btn-sm btn-primary" onclick="editEvent('${e.id}')">Edit</button><button class="btn btn-sm btn-danger" onclick="deleteEvent('${e.id}')">Delete</button></td></tr>`).join('')
   } catch (err) { t.innerHTML = `<tr><td colspan="5"><div class="alert alert-danger">${err.message}</div></td></tr>` }
 }

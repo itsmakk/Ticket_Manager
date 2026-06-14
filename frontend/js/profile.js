@@ -1,15 +1,5 @@
 // Profile — ALL data through API
 async function loadBookings() {
-  const sb = window.__apiSupabase || window.supabase?.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY)
-  let { data: { session } } = await sb.auth.getSession()
-  if (!session) {
-    const token = localStorage.getItem('sb-token')
-    if (token) {
-      const { data } = await sb.auth.setSession({ access_token: token, refresh_token: token })
-      session = data?.session
-    }
-  }
-  if (!session) { location.href = '/login.html?redirect=/profile.html'; return }
   const container = document.getElementById('bookingsList')
   try {
     const bookings = await API.getBookings()
@@ -38,16 +28,4 @@ function showQR(tid, tok, ev, dt, tm, seats) {
 }
 function dl(tid) { const c=document.querySelector('#qr-'+tid+' canvas'); if(!c)return; const a=document.createElement('a'); a.download='ticket-'+tid+'.png'; a.href=c.toDataURL('image/png'); a.click() }
 
-document.addEventListener('DOMContentLoaded', async () => {
-  const sb = window.__apiSupabase || window.supabase?.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY)
-  let { data: { session } } = await sb.auth.getSession()
-  if (!session) {
-    const token = localStorage.getItem('sb-token')
-    if (token) {
-      const { data } = await sb.auth.setSession({ access_token: token, refresh_token: token })
-      session = data?.session
-    }
-  }
-  if (!session) { location.href = '/login.html?redirect=/profile.html'; return }
-  loadBookings()
-})
+document.addEventListener('DOMContentLoaded', loadBookings)

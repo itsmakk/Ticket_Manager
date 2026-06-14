@@ -8,6 +8,7 @@
   window.__apiSupabase = supabaseInstance
 
   function getSB() { return supabaseInstance }
+  window.getSB = getSB
 
   async function call(name, payload) {
     const sb = getSB()

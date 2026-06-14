@@ -12,16 +12,21 @@ function closeShowModal() {
   document.getElementById('showModal').style.display = 'none'
 }
 async function loadShows() {
-  const sel = document.getElementById('eventFilter')
-  const events = await API.adminEvents('list')
-  sel.innerHTML = '<option value="">All Events</option>'+(events||[]).map(e=>`<option value="${e.id}">${e.title}</option>`).join('')
-  filterShows()
+  try {
+    const sel = document.getElementById('eventFilter')
+    const events = await API.adminEvents('list')
+    sel.innerHTML = '<option value="">All Events</option>'+(events||[]).map(e=>`<option value="${e.id}">${e.title}</option>`).join('')
+    filterShows()
+  } catch(err) { console.error(err) }
 }
 async function filterShows() {
-  const t = document.getElementById('showsTable'); const eid = document.getElementById('eventFilter').value; const evts = await API.adminEvents('list')
-  let shows = []; for(const e of (evts||[]).filter(x=>!eid||x.id===eid)) { const s = await API.getShows(e.id); (s||[]).forEach(x=>x.event_title=e.title); shows=shows.concat(s||[]) }
-  t.innerHTML = shows.map(s => `<tr><td>${s.event_title||'-'}</td><td>${s.show_date}</td><td>${s.start_time}</td><td>₹${s.price_premium}</td><td>₹${s.price_gold}</td><td>₹${s.price_silver}</td><td><span class="badge badge-${s.status==='Active'?'success':'warning'}">${s.status}</span></td>
-    <td><button class="btn btn-sm btn-primary" onclick="editShow('${s.id}')">Edit</button><button class="btn btn-sm btn-danger" onclick="deleteShow('${s.id}')">Delete</button></td></tr>`).join('')
+  const t = document.getElementById('showsTable'); const eid = document.getElementById('eventFilter').value
+  try {
+    const evts = await API.adminEvents('list')
+    let shows = []; for(const e of (evts||[]).filter(x=>!eid||x.id===eid)) { const s = await API.getShows(e.id); (s||[]).forEach(x=>x.event_title=e.title); shows=shows.concat(s||[]) }
+    t.innerHTML = shows.map(s => `<tr><td>${s.event_title||'-'}</td><td>${s.show_date}</td><td>${s.start_time}</td><td>₹${s.price_premium}</td><td>₹${s.price_gold}</td><td>₹${s.price_silver}</td><td><span class="badge badge-${s.status==='Active'?'success':'warning'}">${s.status}</span></td>
+      <td><button class="btn btn-sm btn-primary" onclick="editShow('${s.id}')">Edit</button><button class="btn btn-sm btn-danger" onclick="deleteShow('${s.id}')">Delete</button></td></tr>`).join('')
+  } catch(err) { t.innerHTML=`<tr><td colspan="8"><div class="alert alert-danger">${err.message}</div></td></tr>` }
 }
 document.getElementById('showForm')?.addEventListener('submit', async (e) => {
   e.preventDefault()

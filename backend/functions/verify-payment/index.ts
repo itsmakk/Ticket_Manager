@@ -1,11 +1,12 @@
-import { getSupabase, corsResponse, handleCors } from '../_shared/supabase.ts'
+import { getSupabase, getUser, corsResponse, handleCors } from '../_shared/supabase.ts'
 
 Deno.serve(async (req) => {
   const cors = handleCors(req)
   if (cors) return cors
   try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, show_id, event_id, seats, total_amount, discount_amount, promo_code_id, user_id, booking_source } = await req.json()
-    if (!show_id || !seats?.length || !user_id) throw new Error('Missing required fields')
+    const userId = await getUser(req)
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, show_id, event_id, seats, total_amount, discount_amount, promo_code_id, booking_source, customer_name, customer_mobile, customer_email } = await req.json()
+    if (!show_id || !seats?.length || !userId) throw new Error('Missing required fields')
     const supabase = getSupabase(Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
     if (razorpay_order_id !== 'free' && razorpay_order_id !== 'counter') {
       const key = Deno.env.get('RAZORPAY_KEY_SECRET')!
@@ -18,8 +19,9 @@ Deno.serve(async (req) => {
     }
     const bookingId = crypto.randomUUID()
     const { error: be } = await supabase.from('bookings').insert({
-      id: bookingId, user_id, event_id, show_id, total_amount: parseFloat(total_amount),
+      id: bookingId, user_id: userId, event_id, show_id, total_amount: parseFloat(total_amount),
       discount_amount: parseFloat(discount_amount || '0'), promo_code_id, status: 'Confirmed', booking_source: booking_source || 'USER',
+      customer_name, customer_mobile, customer_email,
     })
     if (be) throw be
     const seatIds = seats.map(s => s.seat_id)
@@ -36,7 +38,7 @@ Deno.serve(async (req) => {
     if (te) throw te
     if (promo_code_id) await supabase.rpc('increment_promo_usage', { promo_id: promo_code_id })
     await supabase.from('audit_logs').insert({
-      user_id, action: 'BOOKING_CREATED', entity_type: 'booking', entity_id: bookingId,
+      user_id: userId, action: 'BOOKING_CREATED', entity_type: 'booking', entity_id: bookingId,
       details: `Booking ${bookingId.slice(0, 8)} for ${seats.length} seats, amount ₹${total_amount}`,
     })
     return corsResponse({ booking_id: bookingId, success: true, tickets: tickets.map(t => ({ ticket_id: t.ticket_id, token: t.verification_token })) })

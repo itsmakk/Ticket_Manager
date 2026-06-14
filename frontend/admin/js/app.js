@@ -8,12 +8,10 @@ async function loadDashboard() {
   } catch (err) { container.innerHTML = `<div class="alert alert-danger">${err.message}</div>` }
 }
 document.addEventListener('DOMContentLoaded', async () => {
-  // Check auth
   const sb = window.__apiSupabase
   if (sb) {
     const { data: { session } } = await sb.auth.getSession()
     if (!session) { window.location.href = '/login.html?redirect=/admin/index.html'; return }
-    // Set welcome name
     const du = document.getElementById('dashUserName')
     if (du) {
       const u = localStorage.getItem('sb-user')
@@ -23,13 +21,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         du.textContent = meta?.full_name || user?.email?.split('@')[0] || 'Administrator'
       }
     }
+    document.getElementById('adminLogout')?.addEventListener('click', async (e) => {
+      e.preventDefault()
+      await sb.auth.signOut()
+      localStorage.removeItem('sb-token'); localStorage.removeItem('sb-user')
+      window.location.href = '/'
+    })
   }
   loadDashboard()
-  // Logout
-  document.getElementById('adminLogout')?.addEventListener('click', async (e) => {
-    e.preventDefault()
-    await sb.auth.signOut()
-    localStorage.removeItem('sb-token'); localStorage.removeItem('sb-user')
-    window.location.href = '/'
-  })
 })

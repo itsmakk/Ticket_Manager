@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
     const supabase = getSupabase(Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
     const { data: ticket, error } = await supabase
       .from('tickets')
-      .select('*, bookings:booking_id(event_id, show_id, total_amount, status, events:event_id(title), shows:show_id(show_date, start_time)), bookings:booking_id(booking_seats(seat_number))')
+      .select('*, bookings:booking_id(event_id, show_id, total_amount, status, events:event_id(title), shows:show_id(show_date, start_time), booking_seats(seat_number))')
       .eq('ticket_id', ticket_id)
       .single()
     if (error || !ticket) throw new Error('Ticket not found')
