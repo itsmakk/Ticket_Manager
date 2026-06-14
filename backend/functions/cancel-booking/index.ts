@@ -1,6 +1,8 @@
-import { getSupabase } from '../_shared/supabase.ts'
+import { getSupabase, corsResponse, handleCors } from '../_shared/supabase.ts'
 
 Deno.serve(async (req) => {
+  const cors = handleCors(req)
+  if (cors) return cors
   try {
     const { booking_id } = await req.json()
     if (!booking_id) throw new Error('booking_id required')
@@ -9,8 +11,8 @@ Deno.serve(async (req) => {
     if (error) throw error
     await supabase.from('seats').update({ status: 'available', booking_id: null }).eq('booking_id', booking_id)
     await supabase.from('tickets').update({ status: 'Cancelled' }).eq('booking_id', booking_id)
-    return new Response(JSON.stringify({ success: true }), { headers: { 'Content-Type': 'application/json' } })
+    return corsResponse({ success: true })
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 400, headers: { 'Content-Type': 'application/json' } })
+    return corsResponse({ error: err.message }, 400)
   }
 })

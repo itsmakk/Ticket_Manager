@@ -4,15 +4,10 @@
 // ============================================================
 
 ;(function() {
-  let supabaseInstance = null
+  const supabaseInstance = window.supabase?.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY)
+  window.__apiSupabase = supabaseInstance
 
-  function getSB() {
-    if (!supabaseInstance && window.supabase) {
-      supabaseInstance = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY)
-      window.__apiSupabase = supabaseInstance
-    }
-    return supabaseInstance
-  }
+  function getSB() { return supabaseInstance }
 
   async function call(name, payload) {
     const sb = getSB()

@@ -3,7 +3,7 @@ let selectedShow = null, selectedSeats = [], selectedSeatData = [], lockInterval
 let promoDiscount = 0, promoCodeId = null, razorpayOrder = null
 const eventId = new URLSearchParams(location.search).get('id')
 
-function getSB() { return window.__apiSupabase || window.supabase?.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY) }
+|| window.supabase?.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY) }
 
 async function loadEvent() {
   if (!eventId) { document.getElementById('eventDetail').innerHTML = '<div class="alert alert-danger">No event specified.</div>'; return }

@@ -1,6 +1,8 @@
-import { getSupabase, getUser } from '../_shared/supabase.ts'
+import { getSupabase, getUser, corsResponse, handleCors } from '../_shared/supabase.ts'
 
 Deno.serve(async (req) => {
+  const cors = handleCors(req)
+  if (cors) return cors
   try {
     const userId = getUser(req)
     const supabase = getSupabase(Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
@@ -10,8 +12,8 @@ Deno.serve(async (req) => {
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
     if (error) throw error
-    return new Response(JSON.stringify(bookings), { headers: { 'Content-Type': 'application/json' } })
+    return corsResponse(bookings)
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 400, headers: { 'Content-Type': 'application/json' } })
+    return corsResponse({ error: err.message }, 400)
   }
 })

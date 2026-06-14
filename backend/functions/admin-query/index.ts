@@ -1,6 +1,8 @@
-import { getSupabase, getUser } from '../_shared/supabase.ts'
+import { getSupabase, getUser, corsResponse, handleCors } from '../_shared/supabase.ts'
 
 Deno.serve(async (req) => {
+  const cors = handleCors(req)
+  if (cors) return cors
   try {
     const userId = getUser(req)
     const { resource, action, ...params } = await req.json()
@@ -24,30 +26,30 @@ Deno.serve(async (req) => {
         const { data: revenueData } = await supabase.from('bookings').select('total_amount').eq('status', 'Confirmed')
         const totalRevenue = (revenueData || []).reduce((s, r) => s + parseFloat(r.total_amount || '0'), 0)
         const { data: recentBookings } = await supabase.from('bookings').select('*').order('created_at', { ascending: false }).limit(10)
-        return new Response(JSON.stringify({ total_events: totalEvents, total_shows: totalShows, total_bookings: totalBookings, total_revenue: totalRevenue, recent_bookings: recentBookings }), { headers: { 'Content-Type': 'application/json' } })
+        return corsResponse({ total_events: totalEvents, total_shows: totalShows, total_bookings: totalBookings, total_revenue: totalRevenue, recent_bookings: recentBookings })
       }
 
       // Events
       case 'events': {
-        if (action === 'list') { const { data } = await supabase.from('events').select('*').order('created_at', { ascending: false }); return new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json' } }) }
-        if (action === 'get') { const { data } = await supabase.from('events').select('*').eq('id', params.id).single(); return new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json' } }) }
-        if (action === 'create') { const { data } = await supabase.from('events').insert(params).select().single(); await supabase.from('audit_logs').insert({ user_id: userId, action: 'EVENT_CREATED', entity_type: 'event', entity_id: data?.id }); return new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json' } }) }
-        if (action === 'update') { const { data } = await supabase.from('events').update(params).eq('id', params.id).select().single(); await supabase.from('audit_logs').insert({ user_id: userId, action: 'EVENT_UPDATED', entity_type: 'event', entity_id: params.id }); return new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json' } }) }
-        if (action === 'delete') { await supabase.from('events').delete().eq('id', params.id); await supabase.from('shows').delete().eq('event_id', params.id); await supabase.from('audit_logs').insert({ user_id: userId, action: 'EVENT_DELETED', entity_type: 'event', entity_id: params.id }); return new Response(JSON.stringify({ success: true }), { headers: { 'Content-Type': 'application/json' } }) }
+        if (action === 'list') { const { data } = await supabase.from('events').select('*').order('created_at', { ascending: false }); return corsResponse(data) }
+        if (action === 'get') { const { data } = await supabase.from('events').select('*').eq('id', params.id).single(); return corsResponse(data) }
+        if (action === 'create') { const { data } = await supabase.from('events').insert(params).select().single(); await supabase.from('audit_logs').insert({ user_id: userId, action: 'EVENT_CREATED', entity_type: 'event', entity_id: data?.id }); return corsResponse(data) }
+        if (action === 'update') { const { data } = await supabase.from('events').update(params).eq('id', params.id).select().single(); await supabase.from('audit_logs').insert({ user_id: userId, action: 'EVENT_UPDATED', entity_type: 'event', entity_id: params.id }); return corsResponse(data) }
+        if (action === 'delete') { await supabase.from('events').delete().eq('id', params.id); await supabase.from('shows').delete().eq('event_id', params.id); await supabase.from('audit_logs').insert({ user_id: userId, action: 'EVENT_DELETED', entity_type: 'event', entity_id: params.id }); return corsResponse({ success: true }) }
         break
       }
 
       // Shows
       case 'shows': {
-        if (action === 'create') { const { data } = await supabase.from('shows').insert(params).select().single(); await supabase.from('audit_logs').insert({ user_id: userId, action: 'SHOW_CREATED', entity_type: 'show', entity_id: data?.id }); return new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json' } }) }
-        if (action === 'update') { const { data } = await supabase.from('shows').update(params).eq('id', params.id).select().single(); await supabase.from('audit_logs').insert({ user_id: userId, action: 'SHOW_UPDATED', entity_type: 'show', entity_id: params.id }); return new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json' } }) }
-        if (action === 'delete') { await supabase.from('shows').delete().eq('id', params.id); await supabase.from('seats').delete().eq('show_id', params.id); await supabase.from('audit_logs').insert({ user_id: userId, action: 'SHOW_DELETED', entity_type: 'show', entity_id: params.id }); return new Response(JSON.stringify({ success: true }), { headers: { 'Content-Type': 'application/json' } }) }
+        if (action === 'create') { const { data } = await supabase.from('shows').insert(params).select().single(); await supabase.from('audit_logs').insert({ user_id: userId, action: 'SHOW_CREATED', entity_type: 'show', entity_id: data?.id }); return corsResponse(data) }
+        if (action === 'update') { const { data } = await supabase.from('shows').update(params).eq('id', params.id).select().single(); await supabase.from('audit_logs').insert({ user_id: userId, action: 'SHOW_UPDATED', entity_type: 'show', entity_id: params.id }); return corsResponse(data) }
+        if (action === 'delete') { await supabase.from('shows').delete().eq('id', params.id); await supabase.from('seats').delete().eq('show_id', params.id); await supabase.from('audit_logs').insert({ user_id: userId, action: 'SHOW_DELETED', entity_type: 'show', entity_id: params.id }); return corsResponse({ success: true }) }
         break
       }
 
       // Seats
       case 'seats': {
-        if (action === 'list') { const { data } = await supabase.from('seats').select('*').eq('show_id', params.show_id).order('seat_number'); return new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json' } }) }
+        if (action === 'list') { const { data } = await supabase.from('seats').select('*').eq('show_id', params.show_id).order('seat_number'); return corsResponse(data) }
         if (action === 'generate') {
           const { data: show } = await supabase.from('shows').select('*').eq('id', params.show_id).single()
           if (!show) throw new Error('Show not found')
@@ -66,30 +68,30 @@ Deno.serve(async (req) => {
           await supabase.from('seats').delete().eq('show_id', params.show_id)
           const { error } = await supabase.from('seats').insert(seats)
           if (error) throw error
-          return new Response(JSON.stringify({ success: true, count: seats.length }), { headers: { 'Content-Type': 'application/json' } })
+          return corsResponse({ success: true, count: seats.length })
         }
         break
       }
 
       // Bookings
       case 'bookings': {
-        if (action === 'list') { const { data } = await supabase.from('bookings').select('*, events:event_id(title), shows:show_id(show_date, start_time), booking_seats(*)').order('created_at', { ascending: false }).limit(100); return new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json' } }) }
-        if (action === 'cancel') { await supabase.from('bookings').update({ status: 'Cancelled' }).eq('id', params.id); await supabase.from('seats').update({ status: 'available', booking_id: null }).eq('booking_id', params.id); await supabase.from('tickets').update({ status: 'Cancelled' }).eq('booking_id', params.id); return new Response(JSON.stringify({ success: true }), { headers: { 'Content-Type': 'application/json' } }) }
+        if (action === 'list') { const { data } = await supabase.from('bookings').select('*, events:event_id(title), shows:show_id(show_date, start_time), booking_seats(*)').order('created_at', { ascending: false }).limit(100); return corsResponse(data) }
+        if (action === 'cancel') { await supabase.from('bookings').update({ status: 'Cancelled' }).eq('id', params.id); await supabase.from('seats').update({ status: 'available', booking_id: null }).eq('booking_id', params.id); await supabase.from('tickets').update({ status: 'Cancelled' }).eq('booking_id', params.id); return corsResponse({ success: true }) }
         break
       }
 
       // Tickets
       case 'tickets': {
-        if (action === 'verify') { const { data } = await supabase.from('tickets').select('*, bookings:booking_id(*)').eq('ticket_id', params.ticket_id).single(); return new Response(JSON.stringify({ valid: data?.status === 'Valid', ticket: data }), { headers: { 'Content-Type': 'application/json' } }) }
+        if (action === 'verify') { const { data } = await supabase.from('tickets').select('*, bookings:booking_id(*)').eq('ticket_id', params.ticket_id).single(); return corsResponse({ valid: data?.status === 'Valid', ticket: data }) }
         break
       }
 
       // Promos
       case 'promos': {
-        if (action === 'list') { const { data } = await supabase.from('promo_codes').select('*').order('created_at', { ascending: false }); return new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json' } }) }
-        if (action === 'create') { const { data } = await supabase.from('promo_codes').insert(params).select().single(); return new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json' } }) }
-        if (action === 'update') { const { data } = await supabase.from('promo_codes').update(params).eq('id', params.id).select().single(); return new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json' } }) }
-        if (action === 'delete') { await supabase.from('promo_codes').delete().eq('id', params.id); return new Response(JSON.stringify({ success: true }), { headers: { 'Content-Type': 'application/json' } }) }
+        if (action === 'list') { const { data } = await supabase.from('promo_codes').select('*').order('created_at', { ascending: false }); return corsResponse(data) }
+        if (action === 'create') { const { data } = await supabase.from('promo_codes').insert(params).select().single(); return corsResponse(data) }
+        if (action === 'update') { const { data } = await supabase.from('promo_codes').update(params).eq('id', params.id).select().single(); return corsResponse(data) }
+        if (action === 'delete') { await supabase.from('promo_codes').delete().eq('id', params.id); return corsResponse({ success: true }) }
         break
       }
 
@@ -113,21 +115,21 @@ Deno.serve(async (req) => {
           revenueByEvent.push({ title: ev.title, revenue: rev, count: evBookings?.length || 0 })
         }
 
-        return new Response(JSON.stringify({ total_revenue: totalRevenue, total_bookings: totalBookings, avg_booking_value: avgBooking, total_tickets: totalTickets, cancelled_bookings: cancelledBookings.length, used_promos: usedPromos, revenue_by_event: revenueByEvent }), { headers: { 'Content-Type': 'application/json' } })
+        return corsResponse({ total_revenue: totalRevenue, total_bookings: totalBookings, avg_booking_value: avgBooking, total_tickets: totalTickets, cancelled_bookings: cancelledBookings.length, used_promos: usedPromos, revenue_by_event: revenueByEvent })
       }
 
       // Audit
       case 'audit': {
         const { data } = await supabase.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(200)
-        return new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json' } })
+        return corsResponse(data)
       }
 
       default:
         throw new Error(`Unknown resource: ${resource}`)
     }
 
-    return new Response(JSON.stringify({ error: 'Invalid action' }), { status: 400, headers: { 'Content-Type': 'application/json' } })
+    return corsResponse({ error: 'Invalid action' }, 400)
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 400, headers: { 'Content-Type': 'application/json' } })
+    return corsResponse({ error: err.message }, 400)
   }
 })

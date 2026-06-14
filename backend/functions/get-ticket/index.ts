@@ -1,6 +1,8 @@
-import { getSupabase } from '../_shared/supabase.ts'
+import { getSupabase, corsResponse, handleCors } from '../_shared/supabase.ts'
 
 Deno.serve(async (req) => {
+  const cors = handleCors(req)
+  if (cors) return cors
   try {
     const { ticket_id } = await req.json()
     if (!ticket_id) throw new Error('ticket_id is required')
@@ -11,8 +13,14 @@ Deno.serve(async (req) => {
       .eq('ticket_id', ticket_id)
       .single()
     if (error || !ticket) throw new Error('Ticket not found')
-    return new Response(JSON.stringify({ ticket_id: ticket.ticket_id, status: ticket.status, event_title: ticket.bookings?.events?.title, show_date: ticket.bookings?.shows?.show_date, show_time: ticket.bookings?.shows?.start_time, seats: (ticket.bookings?.booking_seats || []).map(s => s.seat_number).join(', ') }), { headers: { 'Content-Type': 'application/json' } })
+    return corsResponse({
+      ticket_id: ticket.ticket_id, status: ticket.status,
+      event_title: ticket.bookings?.events?.title,
+      show_date: ticket.bookings?.shows?.show_date,
+      show_time: ticket.bookings?.shows?.start_time,
+      seats: (ticket.bookings?.booking_seats || []).map(s => s.seat_number).join(', '),
+    })
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 400, headers: { 'Content-Type': 'application/json' } })
+    return corsResponse({ error: err.message }, 400)
   }
 })

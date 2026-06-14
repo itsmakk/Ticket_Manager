@@ -1,7 +1,5 @@
-// Auth — ONLY uses Supabase Auth directly
-function getAuthSB() {
-  return window.__apiSupabase || window.supabase?.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY)
-}
+// Auth — ONLY uses Supabase Auth directly (shares client from api.js)
+function getAuthSB() { return window.__apiSupabase }
 const loginForm = document.getElementById('loginForm')
 if (loginForm) {
   loginForm.addEventListener('submit', async (e) => {

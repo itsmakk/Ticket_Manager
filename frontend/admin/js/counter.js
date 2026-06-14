@@ -27,7 +27,7 @@ async function counterBooking() {
   if(!avail.length) return alert('No available seats')
   const seat = avail[0]; const prices={premium:show.price_premium,gold:show.price_gold,silver:show.price_silver}; const amt = prices[seat.category]||200
   await API.lockSeats(sid, [seat.id])
-  const sb = window.__apiSupabase||window.supabase?.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY)
+  const sb = window.__apiSupabase
   const { data:{user} } = await sb.auth.admin?.createUser({email,password:'Temp123!',email_confirm:true,user_metadata:{full_name:name}}) || {data:{user:null}}
   const uid = user?.id || email
   await API.verifyPayment({ razorpay_order_id:'counter', razorpay_payment_id:'counter-'+Date.now(), razorpay_signature:'counter', show_id:sid, event_id:event.id, seats:[{seat_id:seat.id,category:seat.category}], total_amount:amt, discount_amount:0, promo_code_id:null, user_id:uid, booking_source:'COUNTER' })
