@@ -22,11 +22,4 @@ async function loadEvents() {
     if (grid) grid.innerHTML = `<div class="alert alert-danger">${err.message}</div>`
   }
 }
-document.addEventListener('DOMContentLoaded', () => {
-  loadEvents()
-  const t = localStorage.getItem('sb-token')
-  if (t) {
-    const lb = document.getElementById('loginBtn'); if(lb) lb.style.display='none'
-    const pl = document.getElementById('profileLink'); if(pl) pl.style.display='inline-block'
-  }
-})
+document.addEventListener('DOMContentLoaded', loadEvents)

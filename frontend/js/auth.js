@@ -45,6 +45,24 @@ if (forgotForm) {
     else { alertDiv.innerHTML = '<div class="alert alert-success">Reset link sent to your email.</div>' }
   })
 }
+// Toggle nav based on login state
+document.addEventListener('DOMContentLoaded', () => {
+  const t = localStorage.getItem('sb-token')
+  const lb = document.getElementById('loginBtn'); const rb = document.getElementById('registerBtn')
+  const pl = document.getElementById('profileLink'); const lo = document.getElementById('logoutBtn')
+  if (t) {
+    if (lb) lb.style.display = 'none'
+    if (rb) rb.style.display = 'none'
+    if (pl) pl.style.display = 'inline-block'
+    if (lo) lo.style.display = 'inline-block'
+  } else {
+    if (lb) lb.style.display = 'inline-block'
+    if (rb) rb.style.display = 'inline-block'
+    if (pl) pl.style.display = 'none'
+    if (lo) lo.style.display = 'none'
+  }
+})
+
 document.getElementById('logoutBtn')?.addEventListener('click', async (e) => {
   e.preventDefault()
   const sb = getAuthSB()

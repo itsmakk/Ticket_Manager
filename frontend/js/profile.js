@@ -35,7 +35,5 @@ document.addEventListener('DOMContentLoaded', async () => {
   const sb = window.__apiSupabase || window.supabase?.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY)
   const { data: { session } } = await sb.auth.getSession()
   if (!session) { location.href = '/login.html?redirect=/profile.html'; return }
-  const lb = document.getElementById('loginBtn'); if(lb) lb.style.display='none'
-  const rb = document.getElementById('registerBtn'); if(rb) rb.style.display='none'
   loadBookings()
 })

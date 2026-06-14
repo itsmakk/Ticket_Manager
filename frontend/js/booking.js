@@ -165,12 +165,6 @@ function showSuccess(id, amt) {
   document.getElementById('summaryContent').innerHTML = ''
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  const t = localStorage.getItem('sb-token')
-  if (t) {
-    document.getElementById('loginBtn').style.display='none'; document.getElementById('registerBtn').style.display='none'; document.getElementById('profileLink').style.display='inline-block'
-  }
-  loadEvent()
-})
+document.addEventListener('DOMContentLoaded', loadEvent)
 document.getElementById('logoutBtn')?.addEventListener('click', async (e) => { e.preventDefault(); await releaseSeats(); const sb=getSB(); await sb.auth.signOut(); localStorage.removeItem('sb-token'); localStorage.removeItem('sb-user'); location.href='/' })
 window.addEventListener('beforeunload', () => releaseSeats())

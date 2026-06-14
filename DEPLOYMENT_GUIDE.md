@@ -110,6 +110,11 @@ git push -u origin main
 
 The migration already includes a trigger that automatically creates a profile when a user signs up. To make someone an admin:
 
+Full Name Milind Khandare
+Mobile Number 9876543210
+Email kmi9@pm.me
+Password 000000
+
 **Option A — Via Supabase Dashboard:**
 1. Go to **Authentication → Users**
 2. Click **Add User** → fill in:
