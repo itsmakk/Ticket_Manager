@@ -12,6 +12,7 @@
 | v0.2.0  | 2026-06-14 | Phase 2: Core HTML pages (public + admin) & responsive CSS |
 | v0.3.0  | 2026-06-14 | Phase 3-13: Database schema, Auth, Events/Shows, Seating, Booking, QR, Admin Panel, Reports, Audit |
 | v0.4.0  | 2026-06-14 | Phase 16: Deployment guide & final project documentation |
+| v0.5.0  | 2026-06-14 | Docker/Container support (Dockerfile, docker-compose, nginx) |
 
 ---
 
@@ -62,6 +63,7 @@
 | 12    | QR verification                                 | 2026-06-14 | Verify tickets by ID. Mark as used. Reject used/cancelled/expired tickets |
 | 13    | Promo code management                           | 2026-06-14 | Fixed, Percentage, Complimentary types. Usage limits, expiry dates. Applied during checkout |
 | 15    | Audit log                                       | 2026-06-14 | Logs for events, shows, bookings, auth. RLS protected, admin-only view. Timestamps + user tracking |
+| D1    | Docker/Container support                        | 2026-06-14 | Dockerfile (nginx-alpine), docker-compose.yml, .dockerignore, env injection at startup |
 
 ---
 

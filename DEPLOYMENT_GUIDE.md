@@ -9,7 +9,7 @@ This guide walks you through deploying the application step by step.
 ## Architecture
 
 ```
-Frontend (HTML/CSS/JS) → Cloudflare Pages
+Frontend (HTML/CSS/JS) → Cloudflare Pages (or Docker)
 Backend (Auth/DB/Storage) → Supabase
 Payments → Razorpay
 Emails → Resend (optional)
@@ -17,7 +17,32 @@ Emails → Resend (optional)
 
 ---
 
-## Prerequisites
+## Quick Start with Docker (Local Development)
+
+Run the app locally without any setup:
+
+```bash
+# 1. Create .env file with your keys
+cp .env.example .env
+# Edit .env → add your Supabase, Razorpay and Resend keys
+# (Quick option: cp .env.original .env — already has all working keys)
+
+# 2. Start with Docker
+docker compose up -d
+
+# 3. Open http://localhost:8080
+```
+
+This serves the full app at `http://localhost:8080`. Changes to HTML/CSS/JS files take effect immediately (rebuild not needed for static files).
+
+To stop:
+```bash
+docker compose down
+```
+
+---
+
+## Prerequisites (Production)
 
 1. **GitHub account** - to host your code
 2. **Cloudflare account** (free) - for hosting
@@ -35,7 +60,7 @@ Emails → Resend (optional)
 git init
 git add .
 git commit -m "Initial commit"
-git remote add origin https://github.com/YOUR_USERNAME/ticket-manager.git
+git remote add origin https://github.com/itsmakk/Ticket_Manager.git
 git push -u origin main
 ```
 
@@ -70,28 +95,42 @@ git push -u origin main
 6. Wait for "Success. No rows returned" message
 7. Repeat steps 2-6 for `supabase/migrations/002_functions.sql`
 
+> **Note:** Both migrations are fully idempotent — you can run them multiple times with no errors or side effects. They use `CREATE TABLE IF NOT EXISTS`, `DROP POLICY IF EXISTS`, and `CREATE OR REPLACE FUNCTION` throughout.
+
 ### 2.4 Configure Authentication
 
 1. Go to **Authentication → Settings**
 2. Under **Email Auth**, make sure email/password is enabled
-3. Under **Site URL**, enter your deployed site URL (or `http://localhost:3000` for testing)
+3. Under **Site URL**, enter your deployed site URL (or `http://localhost:8080` for Docker testing)
 4. Under **Redirect URLs**, add:
-   - `https://your-site.pages.dev/**`
-   - `http://localhost:3000/**`
+   - `https://csma.pages.dev/**`
+   - `http://localhost:8080/**`
 
 ### 2.5 Create Admin User
 
+The migration already includes a trigger that automatically creates a profile when a user signs up. To make someone an admin:
+
+**Option A — Via Supabase Dashboard:**
 1. Go to **Authentication → Users**
 2. Click **Add User** → fill in:
    - **Email:** `admin@auditorium.com`
    - **Password:** Create a strong password
-3. Click **Create user**
+3. Click **Create user** (the trigger auto-creates their profile with `role = 'user'`)
 4. Go to **SQL Editor** and run:
 ```sql
--- Replace USER_ID with the UUID from the user you just created
-INSERT INTO profiles (id, full_name, mobile, email, role)
-VALUES ('USER_ID_HERE', 'Admin', '9876543210', 'admin@auditorium.com', 'admin');
+UPDATE profiles SET role = 'admin'
+WHERE email = 'admin@auditorium.com';
 ```
+
+**Option B — User signs up from the app:**
+1. Visit the app and register as a normal user
+2. Then promote them via SQL Editor:
+```sql
+UPDATE profiles SET role = 'admin'
+WHERE email = 'their@email.com';
+```
+
+> **Note:** The trigger (`handle_new_user()`) in `001_initial_schema.sql` auto-creates a profile on signup, so you never need to `INSERT INTO profiles` manually. Just `UPDATE` the role.
 
 ### 2.6 Disable Email Verification (for testing)
 
@@ -151,13 +190,21 @@ Under **Environment variables (advanced)**, add:
 | `VITE_SUPABASE_ANON_KEY` | Your Supabase anon key |
 | `VITE_RAZORPAY_KEY_ID` | Your Razorpay Key ID |
 | `VITE_RESEND_API_KEY` | Your Resend API key (optional) |
-| `VITE_SITE_URL` | Your Cloudflare Pages URL (e.g., `https://ticket-manager.pages.dev`) |
+| `VITE_SITE_URL` | Your Cloudflare Pages URL (e.g., `https://csma.pages.dev`) |
 
-### 4.4 Deploy
+### 4.4 (Alternative) Deploy via cloudflare.toml
+
+The project includes a `cloudflare.toml` file. To use it instead of the dashboard UI:
+
+1. Edit `cloudflare.toml` and fill in your environment variables (Supabase URL, anon key, Razorpay key, Resend key, site URL)
+2. Install Wrangler CLI: `npm install -g wrangler`
+3. Run: `wrangler pages deploy . --branch production`
+
+### 4.5 Deploy
 
 Click **Save and Deploy**. Wait ~2 minutes for the first deployment.
 
-### 4.5 Custom Domain (Optional)
+### 4.6 Custom Domain (Optional)
 
 1. Go to your Pages project → **Custom domains**
 2. Click **Set up a custom domain**

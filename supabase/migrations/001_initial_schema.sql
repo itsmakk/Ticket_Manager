@@ -199,95 +199,116 @@ ALTER TABLE seat_locks ENABLE ROW LEVEL SECURITY;
 -- =============================================================
 
 -- Profiles: users can read own, admins can read all
+DROP POLICY IF EXISTS "Users can read own profile" ON profiles;
 CREATE POLICY "Users can read own profile"
   ON profiles FOR SELECT
   USING (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Admins can read all profiles" ON profiles;
 CREATE POLICY "Admins can read all profiles"
   ON profiles FOR SELECT
   USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'));
 
+DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
 CREATE POLICY "Users can update own profile"
   ON profiles FOR UPDATE
   USING (auth.uid() = id);
 
 -- Events: public can read published, admins can CRUD
+DROP POLICY IF EXISTS "Public can read published events" ON events;
 CREATE POLICY "Public can read published events"
   ON events FOR SELECT
   USING (status = 'Published');
 
+DROP POLICY IF EXISTS "Admins can manage events" ON events;
 CREATE POLICY "Admins can manage events"
   ON events FOR ALL
   USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'));
 
 -- Shows: public can read non-cancelled, admins CRUD
+DROP POLICY IF EXISTS "Public can read active shows" ON shows;
 CREATE POLICY "Public can read active shows"
   ON shows FOR SELECT
   USING (status IN ('Upcoming', 'Active', 'Completed'));
 
+DROP POLICY IF EXISTS "Admins can manage shows" ON shows;
 CREATE POLICY "Admins can manage shows"
   ON shows FOR ALL
   USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'));
 
 -- Seats: public can read, admins CRUD
+DROP POLICY IF EXISTS "Public can read seats" ON seats;
 CREATE POLICY "Public can read seats"
   ON seats FOR SELECT
   USING (true);
 
+DROP POLICY IF EXISTS "Admins can manage seats" ON seats;
 CREATE POLICY "Admins can manage seats"
   ON seats FOR ALL
   USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'));
 
 -- Bookings: users can read own, admins all
+DROP POLICY IF EXISTS "Users can read own bookings" ON bookings;
 CREATE POLICY "Users can read own bookings"
   ON bookings FOR SELECT
   USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Admins can read all bookings" ON bookings;
 CREATE POLICY "Admins can read all bookings"
   ON bookings FOR ALL
   USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'));
 
 -- Booking seats: users can read own, admins all
+DROP POLICY IF EXISTS "Users can read own booking seats" ON booking_seats;
 CREATE POLICY "Users can read own booking seats"
   ON booking_seats FOR SELECT
   USING (EXISTS (SELECT 1 FROM bookings WHERE id = booking_id AND user_id = auth.uid()));
 
+DROP POLICY IF EXISTS "Admins can manage booking seats" ON booking_seats;
 CREATE POLICY "Admins can manage booking seats"
   ON booking_seats FOR ALL
   USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'));
 
 -- Tickets: users can read own, admins all
+DROP POLICY IF EXISTS "Users can read own tickets" ON tickets;
 CREATE POLICY "Users can read own tickets"
   ON tickets FOR SELECT
   USING (EXISTS (SELECT 1 FROM bookings WHERE id = booking_id AND user_id = auth.uid()));
 
+DROP POLICY IF EXISTS "Admins can manage tickets" ON tickets;
 CREATE POLICY "Admins can manage tickets"
   ON tickets FOR ALL
   USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'));
 
 -- Promo codes: public can read active for validation
+DROP POLICY IF EXISTS "Public can read active promo codes" ON promo_codes;
 CREATE POLICY "Public can read active promo codes"
   ON promo_codes FOR SELECT
   USING (status = 'Active');
 
+DROP POLICY IF EXISTS "Admins can manage promo codes" ON promo_codes;
 CREATE POLICY "Admins can manage promo codes"
   ON promo_codes FOR ALL
   USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'));
 
 -- Audit logs: admins only
+DROP POLICY IF EXISTS "Admins can read audit logs" ON audit_logs;
 CREATE POLICY "Admins can read audit logs"
   ON audit_logs FOR SELECT
   USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'));
 
+DROP POLICY IF EXISTS "System can insert audit logs" ON audit_logs;
 CREATE POLICY "System can insert audit logs"
   ON audit_logs FOR INSERT
   WITH CHECK (true);
 
 -- Seat locks: users can read/insert/delete own
+DROP POLICY IF EXISTS "Users can manage own locks" ON seat_locks;
 CREATE POLICY "Users can manage own locks"
   ON seat_locks FOR ALL
   USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Check locks for all" ON seat_locks;
 CREATE POLICY "Check locks for all"
   ON seat_locks FOR SELECT
   USING (true);
