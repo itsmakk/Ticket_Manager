@@ -63,6 +63,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if (pl) pl.style.display = 'none'
     if (un) un.style.display = 'none'
   }
+  // Show admin user info
+  const aun = document.getElementById('adminUserName')
+  const aur = document.getElementById('adminUserRole')
+  if (aun && t && u) {
+    const user = JSON.parse(u)
+    aun.textContent = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User'
+    if (aur) {
+      const sb = getAuthSB()
+      if (sb) {
+        sb.from('profiles').select('role').eq('id', user.id).single().then(({ data }) => {
+          if (aur && data) aur.textContent = data.role
+        })
+      }
+    }
+  }
+
   // Attach frontend logout
   if (lo) {
     lo.style.display = (t && u) ? 'inline-block' : 'none'
