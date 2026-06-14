@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Users - CSM Admin</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/admin/css/admin.css" />
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="/js/config.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+</head>
+<body>
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="brand">CSM Admin</div>
+      <div id="adminUserInfo" class="admin-user-info">
+        <div id="adminUserName" class="admin-user-name"></div>
+        <div id="adminUserEmail" class="admin-user-email"></div>
+        <div id="adminUserMobile" class="admin-user-mobile"></div>
+        <div id="adminUserRole" class="admin-user-role"></div>
+      </div>
+      <a href="/admin/index.html">Dashboard</a>
+      <a href="/admin/events.html">Events</a>
+      <a href="/admin/shows.html">Shows</a>
+      <a href="/admin/seats.html">Seating</a>
+      <a href="/admin/bookings.html">Bookings</a>
+      <a href="/admin/counter.html">Counter Booking</a>
+      <a href="/admin/promocodes.html">Promo Codes</a>
+      <a href="/admin/reports.html">Reports</a>
+      <a href="/admin/verify.html">Verify Tickets</a>
+      <a href="/admin/audit.html">Audit Log</a>
+      <a href="/admin/users.html">Users</a>
+      <hr style="border-color:rgba(255,255,255,0.1);margin:1rem 0;" />
+      <a href="/" style="color:var(--secondary);">View Site</a>
+      <a href="#" id="adminLogout">Logout</a>
+    </aside>
+    <main class="admin-main">
+      <h1>Users</h1>
+      <div id="alert"></div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>Name</th>
+                <th>Mobile</th>
+                <th>Role</th>
+                <th>Last Sign In</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="usersBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const tbody = document.getElementById('usersBody')
+      const alertDiv = document.getElementById('alert')
+      try {
+        const users = await API.adminUsers('list')
+        tbody.innerHTML = users.map(u => {
+          const roleOptions = ['user', 'counter', 'scanner', 'admin']
+            .map(r => `<option value="${r}"${u.role === r ? ' selected' : ''}>${r}</option>`).join('')
+          const lastSignIn = u.last_sign_in ? new Date(u.last_sign_in).toLocaleString() : '-'
+          return `<tr>
+            <td>${u.email || '-'}</td>
+            <td>${u.full_name || '-'}</td>
+            <td>${u.mobile || '-'}</td>
+            <td class="role-badge role-${u.role}">${u.role}</td>
+            <td>${lastSignIn}</td>
+            <td>
+              <select data-user-id="${u.id}" data-current-role="${u.role}" class="role-select">
+                ${roleOptions}
+              </select>
+              <button class="btn btn-sm btn-primary" onclick="updateRole('${u.id}')">Save</button>
+            </td>
+          </tr>`
+        }).join('')
+      } catch (err) {
+        alertDiv.innerHTML = `<div class="alert alert-danger">${err.message}</div>`
+      }
+    })
+    async function updateRole(userId) {
+      const sel = document.querySelector(`select[data-user-id="${userId}"]`)
+      const newRole = sel.value
+      const currentRole = sel.dataset.currentRole
+      if (newRole === currentRole) return
+      const alertDiv = document.getElementById('alert')
+      if (!confirm(`Change role to ${newRole}?`)) return
+      try {
+        await API.adminUsers('update_role', { id: userId, role: newRole })
+        alertDiv.innerHTML = `<div class="alert alert-success">Role updated to ${newRole}</div>`
+        sel.dataset.currentRole = newRole
+        // Update the role badge
+        const badge = sel.closest('tr').querySelector('.role-badge')
+        badge.textContent = newRole
+        badge.className = `role-badge role-${newRole}`
+      } catch (err) {
+        alertDiv.innerHTML = `<div class="alert alert-danger">${err.message}</div>`
+      }
+    }
+  </script>
+</body>
+</html>

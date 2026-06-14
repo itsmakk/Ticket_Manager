@@ -43,6 +43,19 @@
 .admin-user-mobile { font-size: 0.7rem; color: rgba(255,255,255,0.5); }
 .admin-user-role { font-size: 0.75rem; color: rgba(255,255,255,0.6); text-transform: capitalize; }
 
+.role-badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.role-admin { background: #dbeafe; color: #1e40af; }
+.role-scanner { background: #d1fae5; color: #065f46; }
+.role-counter { background: #fef3c7; color: #92400e; }
+.role-user { background: #e5e7eb; color: #374151; }
+.role-select { padding: 0.25rem; border-radius: var(--radius); border: 1px solid var(--gray-300); }
+
 .admin-main { flex: 1; padding: 1.5rem; background: var(--gray-50); }
 .admin-main h1 { margin-bottom: 1.5rem; }
 

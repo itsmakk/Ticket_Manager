@@ -54,5 +54,6 @@
     adminPromos(action, data) { return this.admin('promos', action, data) },
     adminReports() { return this.admin('reports', 'all') },
     adminAudit() { return this.admin('audit', 'list') },
+    adminUsers(action, data) { return this.admin('users', action, data) },
   }
 })()

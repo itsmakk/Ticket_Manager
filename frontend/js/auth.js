@@ -83,6 +83,15 @@ document.addEventListener('DOMContentLoaded', () => {
           if (data) {
             if (aur) aur.textContent = data.role
             if (aum && data.mobile && !meta?.mobile) aum.textContent = `📱 ${data.mobile}`
+            // Role-based sidebar hiding
+            const isAdmin = data.role === 'admin'
+            const allowedForNonAdmin = new Set(['Verify Tickets', 'View Site', 'Logout', 'CSM Admin'])
+            document.querySelectorAll('.admin-sidebar a').forEach(a => {
+              const text = a.textContent.trim()
+              if (!isAdmin && !allowedForNonAdmin.has(text)) {
+                a.style.display = 'none'
+              }
+            })
           }
         })
       }

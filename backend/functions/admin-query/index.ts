@@ -118,6 +118,26 @@ Deno.serve(async (req) => {
         return corsResponse({ total_revenue: totalRevenue, total_bookings: totalBookings, avg_booking_value: avgBooking, total_tickets: totalTickets, cancelled_bookings: cancelledBookings.length, used_promos: usedPromos, revenue_by_event: revenueByEvent })
       }
 
+      // Users
+      case 'users': {
+        if (action === 'list') {
+          const { data: authUsers } = await supabase.auth.admin.listUsers()
+          const { data: profiles } = await supabase.from('profiles').select('*')
+          const merged = (profiles || []).map(p => {
+            const au = authUsers?.users?.find(u => u.id === p.id)
+            return { ...p, email: p.email || au?.email || '', last_sign_in: au?.last_sign_in_at || null, created_at: p.created_at }
+          })
+          return corsResponse(merged)
+        }
+        if (action === 'update_role') {
+          if (params.id === userId && params.role !== 'admin') throw new Error('Cannot demote yourself')
+          const { data } = await supabase.from('profiles').update({ role: params.role }).eq('id', params.id).select().single()
+          await supabase.from('audit_logs').insert({ user_id: userId, action: 'USER_ROLE_CHANGED', entity_type: 'user', entity_id: params.id, details: `role=${params.role}` })
+          return corsResponse(data)
+        }
+        break
+      }
+
       // Audit
       case 'audit': {
         const { data } = await supabase.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(200)
