@@ -13,7 +13,11 @@ if (loginForm) {
     localStorage.setItem('sb-token', data.session?.access_token)
     localStorage.setItem('sb-user', JSON.stringify(data.user))
     const params = new URLSearchParams(window.location.search)
-    window.location.href = params.get('redirect') || '/'
+    if (params.get('redirect')) { window.location.href = params.get('redirect'); return }
+    // Redirect admins to admin dashboard
+    sb.from('profiles').select('role').eq('id', data.user.id).single().then(({ data: p }) => {
+      window.location.href = p?.role === 'admin' ? '/admin/index.html' : '/'
+    })
   })
 }
 const registerForm = document.getElementById('registerForm')
@@ -97,6 +101,18 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         })
       }
+    }
+  }
+
+  // Show Admin Panel link for admin users
+  const adminLink = document.getElementById('adminPanelLink')
+  if (adminLink && t && u) {
+    const user = JSON.parse(u)
+    const sb = getAuthSB()
+    if (sb) {
+      sb.from('profiles').select('role').eq('id', user.id).single().then(({ data }) => {
+        if (data?.role === 'admin') adminLink.style.display = 'inline-block'
+      })
     }
   }
 

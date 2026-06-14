@@ -1,5 +1,6 @@
 import { getSupabase, getUser, corsResponse, handleCors } from '../_shared/supabase.ts'
 
+// v2 - getUser now async, returns UUID from JWT
 Deno.serve(async (req) => {
   const cors = handleCors(req)
   if (cors) return cors
