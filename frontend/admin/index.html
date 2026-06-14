@@ -6,34 +6,10 @@
   <title>Admin - CSM Auditorium</title>
   <link rel="stylesheet" href="/css/style.css" />
   <style>
-    .admin-layout { display: flex; min-height: 100vh; }
-    .admin-sidebar {
-      width: 240px;
-      background: var(--gray-800);
-      color: white;
-      padding: 1rem;
-      flex-shrink: 0;
-    }
-    .admin-sidebar a {
-      display: block;
-      color: rgba(255,255,255,0.8);
-      padding: 0.6rem 0.75rem;
-      border-radius: var(--radius);
-      margin-bottom: 0.25rem;
-      font-size: 0.9rem;
-    }
-    .admin-sidebar a:hover { background: rgba(255,255,255,0.1); text-decoration: none; color: white; }
-    .admin-sidebar .brand { font-size: 1.1rem; font-weight: 700; margin-bottom: 1.5rem; padding: 0.5rem; color: white; }
-    .admin-main { flex: 1; padding: 1.5rem; background: var(--gray-50); }
-    .admin-main h1 { margin-bottom: 1.5rem; }
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
     .stat-card { background: white; padding: 1.25rem; border-radius: var(--radius); box-shadow: var(--shadow); }
     .stat-card .number { font-size: 1.75rem; font-weight: 700; color: var(--primary); }
     .stat-card .label { font-size: 0.85rem; color: var(--gray-500); }
-    @media (max-width: 768px) {
-      .admin-layout { flex-direction: column; }
-      .admin-sidebar { width: 100%; }
-    }
   </style>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="/js/config.js"></script>
@@ -44,11 +20,11 @@
   <div class="admin-layout">
     <aside class="admin-sidebar">
       <div class="brand">CSM Admin</div>
-      <div id="adminUserInfo" style="padding:0.5rem;margin-bottom:0.5rem;background:rgba(255,255,255,0.05);border-radius:var(--radius);">
-        <div id="adminUserName" style="font-size:0.85rem;font-weight:600;color:white;"></div>
-        <div id="adminUserEmail" style="font-size:0.7rem;color:rgba(255,255,255,0.5);"></div>
-        <div id="adminUserMobile" style="font-size:0.7rem;color:rgba(255,255,255,0.5);"></div>
-        <div id="adminUserRole" style="font-size:0.75rem;color:rgba(255,255,255,0.6);text-transform:capitalize;"></div>
+      <div id="adminUserInfo" class="admin-user-info">
+        <div id="adminUserName" class="admin-user-name"></div>
+        <div id="adminUserEmail" class="admin-user-email"></div>
+        <div id="adminUserMobile" class="admin-user-mobile"></div>
+        <div id="adminUserRole" class="admin-user-role"></div>
       </div>
       <a href="/admin/index.html">Dashboard</a>
       <a href="/admin/events.html">Events</a>
