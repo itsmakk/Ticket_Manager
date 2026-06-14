@@ -5,7 +5,7 @@ CREATE OR REPLACE FUNCTION increment_promo_usage(promo_id UUID)
 RETURNS VOID AS $$
 BEGIN
   UPDATE promo_codes
-  SET usage_count = usage_count + 1
+  SET used_count = used_count + 1
   WHERE id = promo_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

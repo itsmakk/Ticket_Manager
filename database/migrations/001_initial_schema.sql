@@ -89,13 +89,16 @@ CREATE TRIGGER trg_calc_end_time
 -- 4. SEATS TABLE
 CREATE TABLE IF NOT EXISTS seats (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  show_id UUID NOT NULL REFERENCES shows(id) ON DELETE CASCADE,
   seat_number TEXT NOT NULL,
-  row_number TEXT NOT NULL,
+  row_label TEXT,
   category TEXT NOT NULL DEFAULT 'silver',
   status TEXT NOT NULL DEFAULT 'available' CHECK (status IN ('available', 'locked', 'booked', 'blocked')),
+  locked_at TIMESTAMPTZ,
+  booking_id UUID,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(seat_number)
+  UNIQUE(show_id, seat_number)
 );
 
 ALTER TABLE seats ENABLE ROW LEVEL SECURITY;
@@ -109,7 +112,7 @@ CREATE TABLE IF NOT EXISTS bookings (
   total_amount DECIMAL(10,2) NOT NULL DEFAULT 0,
   discount_amount DECIMAL(10,2) DEFAULT 0,
   status TEXT NOT NULL DEFAULT 'Confirmed' CHECK (status IN ('Confirmed', 'Cancelled')),
-  booking_source TEXT NOT NULL DEFAULT 'USER' CHECK (booking_source IN ('USER', 'ADMIN_COUNTER')),
+  booking_source TEXT NOT NULL DEFAULT 'USER' CHECK (booking_source IN ('USER', 'COUNTER', 'ADMIN_COUNTER')),
   payment_status TEXT DEFAULT 'PAID' CHECK (payment_status IN ('PENDING', 'PAID', 'FAILED')),
   payment_mode TEXT DEFAULT 'ONLINE' CHECK (payment_mode IN ('ONLINE', 'CASH', 'UPI')),
   payment_id TEXT,
@@ -130,6 +133,7 @@ CREATE TABLE IF NOT EXISTS booking_seats (
   booking_id UUID NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
   seat_id UUID NOT NULL REFERENCES seats(id),
   seat_number TEXT,
+  category TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(seat_id, booking_id)
 );
@@ -156,11 +160,12 @@ CREATE TABLE IF NOT EXISTS promo_codes (
   description TEXT,
   discount_type TEXT NOT NULL CHECK (discount_type IN ('FIXED', 'PERCENTAGE', 'COMPLIMENTARY')),
   discount_value DECIMAL(10,2) DEFAULT 0,
-  usage_limit INTEGER DEFAULT 100,
-  usage_count INTEGER DEFAULT 0,
-  start_date DATE,
-  expiry_date DATE,
-  status TEXT NOT NULL DEFAULT 'Active' CHECK (status IN ('Active', 'Inactive')),
+  max_uses INTEGER DEFAULT 100,
+  used_count INTEGER DEFAULT 0,
+  max_discount_amount DECIMAL(10,2),
+  min_order_amount DECIMAL(10,2) DEFAULT 0,
+  is_active BOOLEAN DEFAULT true,
+  expires_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -172,10 +177,9 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES auth.users(id),
   action TEXT NOT NULL,
-  module TEXT NOT NULL,
-  record_id TEXT,
+  entity_type TEXT,
+  entity_id TEXT,
   details TEXT,
-  ip_address TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
