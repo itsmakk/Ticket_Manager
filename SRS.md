@@ -295,7 +295,7 @@ Administrators **cannot demote themselves** — attempting to change their own r
 | Feature                 | User | Counter | Scanner | Admin |
 | ----------------------- | :--: | :-----: | :-----: | :---: |
 | Browse events           | ✅   | ✅      | ✅      | ✅    |
-| Book tickets (online)   | ✅   | ❌¹     | ❌      | ❌¹   |
+| Book tickets (online)   | ✅   | ❌¹     | ❌      | ✅    |
 | Counter booking         | ❌   | ✅      | ❌      | ✅    |
 | View own bookings       | ✅   | ✅      | ✅      | ✅    |
 | Cancel booking          | ❌   | ❌      | ❌      | ✅    |
@@ -308,7 +308,7 @@ Administrators **cannot demote themselves** — attempting to change their own r
 | Manage users / roles    | ❌   | ❌      | ❌      | ✅    |
 | View audit logs         | ❌   | ❌      | ❌      | ✅    |
 
-> ¹ Counter and admin can make counter bookings through the admin panel for walk-in customers.
+> ¹ Counter can make counter bookings through the admin panel for walk-in customers. Admin can book tickets online via the "Book Tickets" link in the sidebar, or make counter bookings at the counter.
 
 ---
 
@@ -1677,14 +1677,14 @@ Examples:
 
 | Feature        | User | Counter | Scanner | Admin |
 | -------------- | :--: | :-----: | :-----: | :---: |
-| Book Ticket    | Yes  | Yes¹    | No      | Yes¹  |
+| Book Ticket    | Yes  | Yes¹    | No      | Yes   |
 | Verify Ticket  | No   | No      | Yes     | Yes   |
 | Create Event   | No   | No      | No      | Yes   |
 | Cancel Booking | No   | No      | No      | Yes   |
 | View Reports   | No   | No      | No      | Yes   |
 | Manage Users   | No   | No      | No      | Yes   |
 
-> ¹ Counter and admin can create counter bookings for walk-in customers through the admin panel.
+> ¹ Counter can create counter bookings for walk-in customers through the admin panel. Admin can book online via the "Book Tickets" sidebar link or make counter bookings.
 
 ---
 
