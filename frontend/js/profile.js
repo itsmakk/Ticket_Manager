@@ -1,7 +1,14 @@
 // Profile — ALL data through API
 async function loadBookings() {
   const sb = window.__apiSupabase || window.supabase?.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY)
-  const { data: { session } } = await sb.auth.getSession()
+  let { data: { session } } = await sb.auth.getSession()
+  if (!session) {
+    const token = localStorage.getItem('sb-token')
+    if (token) {
+      const { data } = await sb.auth.setSession({ access_token: token, refresh_token: token })
+      session = data?.session
+    }
+  }
   if (!session) { location.href = '/login.html?redirect=/profile.html'; return }
   const container = document.getElementById('bookingsList')
   try {
@@ -33,7 +40,14 @@ function dl(tid) { const c=document.querySelector('#qr-'+tid+' canvas'); if(!c)r
 
 document.addEventListener('DOMContentLoaded', async () => {
   const sb = window.__apiSupabase || window.supabase?.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY)
-  const { data: { session } } = await sb.auth.getSession()
+  let { data: { session } } = await sb.auth.getSession()
+  if (!session) {
+    const token = localStorage.getItem('sb-token')
+    if (token) {
+      const { data } = await sb.auth.setSession({ access_token: token, refresh_token: token })
+      session = data?.session
+    }
+  }
   if (!session) { location.href = '/login.html?redirect=/profile.html'; return }
   loadBookings()
 })
