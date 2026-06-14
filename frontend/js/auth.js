@@ -72,7 +72,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const user = JSON.parse(u)
     const email = user?.email || ''
     const meta = user?.user_metadata || {}
-    const meta = user?.user_metadata || {}
     const name = meta?.full_name || email.split('@')[0] || 'User'
     aun.textContent = name
     if (aue) aue.textContent = email
