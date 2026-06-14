@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin - CSM Auditorium</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    .admin-layout { display: flex; min-height: 100vh; }
+    .admin-sidebar {
+      width: 240px;
+      background: var(--gray-800);
+      color: white;
+      padding: 1rem;
+      flex-shrink: 0;
+    }
+    .admin-sidebar a {
+      display: block;
+      color: rgba(255,255,255,0.8);
+      padding: 0.6rem 0.75rem;
+      border-radius: var(--radius);
+      margin-bottom: 0.25rem;
+      font-size: 0.9rem;
+    }
+    .admin-sidebar a:hover { background: rgba(255,255,255,0.1); text-decoration: none; color: white; }
+    .admin-sidebar .brand { font-size: 1.1rem; font-weight: 700; margin-bottom: 1.5rem; padding: 0.5rem; color: white; }
+    .admin-main { flex: 1; padding: 1.5rem; background: var(--gray-50); }
+    .admin-main h1 { margin-bottom: 1.5rem; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .stat-card { background: white; padding: 1.25rem; border-radius: var(--radius); box-shadow: var(--shadow); }
+    .stat-card .number { font-size: 1.75rem; font-weight: 700; color: var(--primary); }
+    .stat-card .label { font-size: 0.85rem; color: var(--gray-500); }
+    @media (max-width: 768px) {
+      .admin-layout { flex-direction: column; }
+      .admin-sidebar { width: 100%; }
+    }
+  </style>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="/js/config.js"></script>
+</head>
+<body>
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="brand">CSM Admin</div>
+      <a href="/admin/index.html">Dashboard</a>
+      <a href="/admin/events.html">Events</a>
+      <a href="/admin/shows.html">Shows</a>
+      <a href="/admin/seats.html">Seating</a>
+      <a href="/admin/bookings.html">Bookings</a>
+      <a href="/admin/counter.html">Counter Booking</a>
+      <a href="/admin/promocodes.html">Promo Codes</a>
+      <a href="/admin/reports.html">Reports</a>
+      <a href="/admin/verify.html">Verify Tickets</a>
+      <a href="/admin/audit.html">Audit Log</a>
+      <hr style="border-color:rgba(255,255,255,0.1);margin:1rem 0;" />
+      <a href="/" style="color:var(--secondary);">View Site</a>
+      <a href="#" id="adminLogout">Logout</a>
+    </aside>
+    <main class="admin-main">
+      <h1>Dashboard</h1>
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card"><div class="spinner"></div></div>
+      </div>
+      <div class="grid grid-2">
+        <div class="card">
+          <h3>Recent Bookings</h3>
+          <div id="recentBookings"><div class="spinner"></div></div>
+        </div>
+        <div class="card">
+          <h3>Upcoming Shows</h3>
+          <div id="upcomingShows"><div class="spinner"></div></div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="/admin/js/app.js"></script>
+</body>
+</html>

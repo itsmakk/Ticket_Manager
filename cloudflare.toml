@@ -1,0 +1,13 @@
+# Cloudflare Pages configuration
+name = "ticket-manager-auditorium"
+
+[build]
+command = "echo 'Static site deployment'"
+publish = "."
+
+[env.production]
+VITE_SUPABASE_URL = ""
+VITE_SUPABASE_ANON_KEY = ""
+VITE_RAZORPAY_KEY_ID = ""
+VITE_RESEND_API_KEY = ""
+VITE_SITE_URL = "https://ticket-manager-auditorium.pages.dev"
