@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS profiles (
   full_name TEXT,
   mobile TEXT,
   email TEXT,
-  role TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'counter', 'admin')),
+  role TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'counter', 'scanner', 'admin')),
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );

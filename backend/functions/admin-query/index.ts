@@ -6,9 +6,14 @@ Deno.serve(async (req) => {
     const { resource, action, ...params } = await req.json()
     const supabase = getSupabase(Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
 
-    // Verify admin role
+    // Verify role
     const { data: profile } = await supabase.from('profiles').select('role').eq('id', userId).single()
-    if (!profile || profile.role !== 'admin') throw new Error('Unauthorized: admin only')
+    if (!profile) throw new Error('Unauthorized')
+    const isAdmin = profile.role === 'admin'
+    const isScanner = profile.role === 'scanner'
+    const isStaff = isAdmin || isScanner
+
+    if (!isAdmin && resource !== 'tickets') throw new Error('Unauthorized: admin only')
 
     switch (resource) {
       // Dashboard
