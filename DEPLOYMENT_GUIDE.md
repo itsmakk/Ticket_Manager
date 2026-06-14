@@ -9,10 +9,11 @@ This guide walks you through deploying the application step by step.
 ## Architecture
 
 ```
-Frontend (HTML/CSS/JS) → Cloudflare Pages (or Docker)
-Backend (Auth/DB/Storage) → Supabase
-Payments → Razorpay
-Emails → Resend (optional)
+Browser → Edge Functions (Supabase) → Database
+Frontend (HTML/CSS/JS) → GitHub Pages (or Docker)
+Auth (login/register) → Supabase Auth (direct from browser)
+Payments → Razorpay (via Edge Functions)
+Emails → Resend (optional — Phase 14)
 ```
 
 ---
@@ -30,10 +31,10 @@ cp .env.example .env
 # 2. Start with Docker
 docker compose up -d
 
-# 3. Open http://localhost:8080
+# 3. Open http://localhost:8081
 ```
 
-This serves the full app at `http://localhost:8080`. Changes to HTML/CSS/JS files take effect immediately (rebuild not needed for static files).
+This serves the full app at `http://localhost:8081`. Changes to HTML/CSS/JS files take effect immediately (rebuild not needed for static files).
 
 To stop:
 ```bash
@@ -44,11 +45,10 @@ docker compose down
 
 ## Prerequisites (Production)
 
-1. **GitHub account** - to host your code
-2. **Cloudflare account** (free) - for hosting
-3. **Supabase account** (free) - for database & auth
-4. **Razorpay account** (free) - for payments
-5. **Resend account** (free, optional) - for emails
+1. **GitHub account** - to host your code & deploy frontend via GitHub Pages
+2. **Supabase account** (free) - for database, auth & Edge Functions
+3. **Razorpay account** (free) - for payments
+4. **Resend account** (free, optional) - for emails (Phase 14)
 
 ---
 
@@ -101,10 +101,10 @@ git push -u origin main
 
 1. Go to **Authentication → Settings**
 2. Under **Email Auth**, make sure email/password is enabled
-3. Under **Site URL**, enter your deployed site URL (or `http://localhost:8080` for Docker testing)
+3. Under **Site URL**, enter your deployed GitHub Pages URL (or `http://localhost:8081` for Docker testing)
 4. Under **Redirect URLs**, add:
-   - `https://csma.pages.dev/**`
-   - `http://localhost:8080/**`
+   - `https://itsmakk.github.io/Ticket_Manager/**`
+   - `http://localhost:8081/**`
 
 ### 2.5 Create Admin User
 
@@ -113,13 +113,13 @@ The migration already includes a trigger that automatically creates a profile wh
 **Option A — Via Supabase Dashboard:**
 1. Go to **Authentication → Users**
 2. Click **Add User** → fill in:
-   - **Email:** `admin@auditorium.com`
+   - **Email:** `kmi9@pm.me`
    - **Password:** Create a strong password
 3. Click **Create user** (the trigger auto-creates their profile with `role = 'user'`)
 4. Go to **SQL Editor** and run:
 ```sql
 UPDATE profiles SET role = 'admin'
-WHERE email = 'admin@auditorium.com';
+WHERE email = 'kmi9@pm.me';
 ```
 
 **Option B — User signs up from the app:**
@@ -161,59 +161,95 @@ WHERE email = 'their@email.com';
 
 ---
 
-## Step 4: Cloudflare Pages Deployment
+## Step 4: GitHub Pages Deployment
 
-### 4.1 Connect to GitHub
+### 4.1 Push Code to GitHub
 
-1. Go to https://dash.cloudflare.com
-2. Go to **Pages**
-3. Click **Create a project** → **Connect to Git**
-4. Authorize with GitHub and select your repository
+```bash
+git push -u origin main
+```
 
-### 4.2 Configure Build
+### 4.2 Enable GitHub Pages
 
-In the build settings:
+1. Go to your repo → **Settings** → **Pages**
+2. Under **Branch**: select `main`, folder = **`/frontend`**
+3. Click **Save**
 
-- **Project name:** `ticket-manager-auditorium` (or your choice)
-- **Framework preset:** None
-- **Build command:** (leave empty - this is a static site)
-- **Build output directory:** `.` (the root directory)
-- **Root directory:** (leave empty)
+### 4.3 Wait for Deploy
 
-### 4.3 Set Environment Variables
+After ~1-2 minutes, your site is live at:  
+`https://itsmakk.github.io/Ticket_Manager/`
 
-Under **Environment variables (advanced)**, add:
+### 4.4 Set Site URL in Supabase Auth
 
-| Variable | Value |
-|----------|-------|
-| `VITE_SUPABASE_URL` | Your Supabase project URL |
-| `VITE_SUPABASE_ANON_KEY` | Your Supabase anon key |
-| `VITE_RAZORPAY_KEY_ID` | Your Razorpay Key ID |
-| `VITE_RESEND_API_KEY` | Your Resend API key (optional) |
-| `VITE_SITE_URL` | Your Cloudflare Pages URL (e.g., `https://csma.pages.dev`) |
+1. Go to Supabase Dashboard → **Authentication** → **Settings**
+2. Under **Site URL**, enter your GitHub Pages URL
+3. Under **Redirect URLs**, add: `https://itsmakk.github.io/Ticket_Manager/**`
 
-### 4.4 (Alternative) Deploy via cloudflare.toml
+### 4.5 Custom Domain (Optional)
 
-The project includes a `cloudflare.toml` file. To use it instead of the dashboard UI:
-
-1. Edit `cloudflare.toml` and fill in your environment variables (Supabase URL, anon key, Razorpay key, Resend key, site URL)
-2. Install Wrangler CLI: `npm install -g wrangler`
-3. Run: `wrangler pages deploy . --branch production`
-
-### 4.5 Deploy
-
-Click **Save and Deploy**. Wait ~2 minutes for the first deployment.
-
-### 4.6 Custom Domain (Optional)
-
-1. Go to your Pages project → **Custom domains**
-2. Click **Set up a custom domain**
-3. Enter your domain (e.g., `tickets.auditorium.com`)
-4. Follow Cloudflare's DNS instructions
+1. Go to your repo → **Settings** → **Pages**
+2. Under **Custom domain**, enter your domain
+3. Create a DNS `CNAME` record pointing to `itsmakk.github.io`
 
 ---
 
-## Step 5: Setting Up Admin Panel
+## Step 5: Deploy Supabase Edge Functions
+
+The app uses Edge Functions (Deno) for ALL database operations. Deploy them after Supabase is set up.
+
+### 5.1 Install Supabase CLI
+
+```bash
+# macOS
+brew install supabase/tap/supabase
+
+# Linux
+curl -fsSL https://github.com/supabase/cli/releases/download/v2/supabase_linux_amd64.deb -o supabase.deb
+sudo dpkg -i supabase.deb
+
+# Windows (PowerShell)
+scoop bucket add supabase https://github.com/supabase/supabase.git
+scoop install supabase
+```
+
+### 5.2 Link Project & Deploy
+
+```bash
+supabase login
+supabase link --project-ref <your-supabase-project-ref>
+
+# Deploy all functions
+supabase functions deploy get-events
+supabase functions deploy get-shows
+supabase functions deploy get-seat-map
+supabase functions deploy get-bookings
+supabase functions deploy get-ticket
+supabase functions deploy lock-seats
+supabase functions deploy release-seats
+supabase functions deploy create-razorpay-order
+supabase functions deploy verify-payment
+supabase functions deploy cancel-booking
+supabase functions deploy admin-query
+```
+
+### 5.3 Set Function Secrets
+
+```bash
+supabase secrets set SUPABASE_URL=<your-supabase-url>
+supabase secrets set SUPABASE_SERVICE_ROLE_KEY=<your-service-role-key>
+supabase secrets set RAZORPAY_KEY_ID=<razorpay-key-id>
+supabase secrets set RAZORPAY_KEY_SECRET=<razorpay-key-secret>
+supabase secrets set RESEND_API_KEY=<resend-key>  # optional, for Phase 14
+```
+
+> **Important:** The `service_role` key is used inside Edge Functions only — it is NEVER exposed to the browser.
+>
+> **Security:** The `cloudflare.toml` file has hardcoded keys. Since we're using GitHub Pages now, remove it: `git rm cloudflare.toml && git commit -m "remove cloudflare.toml with secrets"`
+
+---
+
+## Step 6: Setting Up Admin Panel
 
 1. Visit your deployed site
 2. Go to `/admin/index.html`
@@ -225,9 +261,9 @@ Click **Save and Deploy**. Wait ~2 minutes for the first deployment.
 
 ---
 
-## Step 6: Initial Configuration
+## Step 7: Initial Configuration
 
-### 6.1 Generate Seating Layout
+### 7.1 Generate Seating Layout
 
 1. Go to **Admin → Seating**
 2. Enter rows (e.g., `A,B,C,D,E,F,G,H,I,J`)
@@ -235,13 +271,13 @@ Click **Save and Deploy**. Wait ~2 minutes for the first deployment.
 4. Set row categories (e.g., `premium,premium,gold,gold,gold,silver,silver,silver,silver,silver`)
 5. Click **Generate Layout**
 
-### 6.2 Create Test Event
+### 7.2 Create Test Event
 
 1. Go to **Admin → Events**
 2. Click **+ New Event**
 3. Fill in details and set status to **Published**
 
-### 6.3 Create Test Show
+### 7.3 Create Test Show
 
 1. Go to **Admin → Shows**
 2. Click **+ New Show**
@@ -250,7 +286,7 @@ Click **Save and Deploy**. Wait ~2 minutes for the first deployment.
 
 ---
 
-## Step 7: Testing the Flow
+## Step 8: Testing the Flow
 
 1. Visit your site as a regular user
 2. Register a new account
@@ -262,21 +298,24 @@ Click **Save and Deploy**. Wait ~2 minutes for the first deployment.
 
 ---
 
-## Step 8: Email Setup (Optional - Resend)
+## Step 9: Email Setup (Optional - Resend)
 
 Skip this step if you don't need booking confirmation emails.
 
-### 8.1 Create Resend Account
+### 9.1 Create Resend Account
 
 1. Go to https://resend.com
 2. Sign up and verify your domain
 3. Get your API key
 
-### 8.2 Add Environment Variable
+### 9.2 Set Edge Function Secret
 
-Add `VITE_RESEND_API_KEY` to your Cloudflare Pages environment variables.
+Run via Supabase CLI (not a frontend env var):
+```bash
+supabase secrets set RESEND_API_KEY=re_...
+```
 
-### 8.3 Email is Currently Planned for Phase 14
+### 9.3 Email is Currently Planned for Phase 14
 
 The booking confirmation email sending via Resend requires a server-side function (Cloudflare Functions or Supabase Edge Functions). This feature is planned for Phase 14.
 
@@ -288,8 +327,8 @@ Before going live:
 
 - [ ] Change Supabase to require email verification
 - [ ] Switch Razorpay from test to live mode
-- [ ] Add proper SSL (Cloudflare handles this automatically)
-- [ ] Set up custom domain
+- [ ] Set up custom domain (optional)
+- [ ] Deploy Supabase Edge Functions via CLI (`supabase functions deploy`)
 - [ ] Test the full booking flow
 - [ ] Create backup of database
 - [ ] Train staff on admin panel usage
@@ -301,7 +340,7 @@ Before going live:
 
 | Service | Free Tier | Paid Tier |
 |---------|-----------|-----------|
-| Cloudflare Pages | Unlimited requests | ~$5/month for more builds |
+| GitHub Pages | Unlimited requests, 1GB storage, 100GB bandwidth/month | Free |
 | Supabase | 500MB DB, 50K users | $25/month for 8GB DB |
 | Razorpay | 2% per transaction | Custom for high volume |
 | Resend | 100 emails/day | $10/month for 50K emails |
@@ -340,6 +379,7 @@ Total estimated monthly cost: **$0 (free tier)** for low-volume usage.
 ## Need Help?
 
 - Supabase Documentation: https://supabase.com/docs
-- Cloudflare Pages Docs: https://developers.cloudflare.com/pages
+- GitHub Pages Docs: https://docs.github.com/pages
 - Razorpay Docs: https://razorpay.com/docs
+- Supabase Edge Functions: https://supabase.com/docs/guides/functions
 - Project Issues: Report on GitHub repository

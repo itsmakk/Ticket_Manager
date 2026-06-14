@@ -5,11 +5,11 @@ services:
     build: .
     container_name: ticket-manager
     ports:
-      - "8080:80"
+      - "8081:80"
     environment:
       - VITE_SUPABASE_URL=${VITE_SUPABASE_URL:-https://swyfbvcljwgnyiepesov.supabase.co}
       - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN3eWZidmNsandnbnlpZXBlc292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE0MTgyOTQsImV4cCI6MjA5Njk5NDI5NH0.Z9LX5o5eoxJlW74jCMEbyYb7_vzzdFl0iXpPqurcfss}
       - VITE_RAZORPAY_KEY_ID=${VITE_RAZORPAY_KEY_ID:-rzp_test_SUJNzsokchNZZd}
       - VITE_RESEND_API_KEY=${VITE_RESEND_API_KEY:-}
-      - VITE_SITE_URL=${VITE_SITE_URL:-http://localhost:8080}
+      - VITE_SITE_URL=${VITE_SITE_URL:-http://localhost:8081}
     restart: unless-stopped
