@@ -65,15 +65,25 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   // Show admin user info
   const aun = document.getElementById('adminUserName')
+  const aue = document.getElementById('adminUserEmail')
+  const aum = document.getElementById('adminUserMobile')
   const aur = document.getElementById('adminUserRole')
   if (aun && t && u) {
     const user = JSON.parse(u)
-    aun.textContent = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User'
+    const email = user?.email || ''
+    const meta = user?.user_metadata || {}
+    const name = meta?.full_name || email.split('@')[0] || 'User'
+    aun.textContent = name
+    if (aue) aue.textContent = email
+    if (aum) aum.textContent = meta?.mobile ? `📱 ${meta.mobile}` : ''
     if (aur) {
       const sb = getAuthSB()
       if (sb) {
-        sb.from('profiles').select('role').eq('id', user.id).single().then(({ data }) => {
-          if (aur && data) aur.textContent = data.role
+        sb.from('profiles').select('role, mobile, email').eq('id', user.id).single().then(({ data }) => {
+          if (data) {
+            if (aur) aur.textContent = data.role
+            if (aum && data.mobile && !meta?.mobile) aum.textContent = `📱 ${data.mobile}`
+          }
         })
       }
     }
