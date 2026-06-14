@@ -1,0 +1,63 @@
+// ============================================================
+// API Layer — Frontend ONLY talks to Edge Functions
+// NO direct Supabase database queries from the browser
+// ============================================================
+
+;(function() {
+  let supabaseInstance = null
+
+  function getSB() {
+    if (!supabaseInstance && window.supabase) {
+      supabaseInstance = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY)
+      window.__apiSupabase = supabaseInstance
+    }
+    return supabaseInstance
+  }
+
+  async function call(name, payload) {
+    const sb = getSB()
+    const { data: { session } } = await sb.auth.getSession()
+    const headers = { 'Content-Type': 'application/json' }
+    if (session?.access_token) headers['Authorization'] = `Bearer ${session.access_token}`
+
+    const res = await fetch(`${CONFIG.FUNCTIONS_URL}/${name}`, {
+      method: 'POST', headers, body: JSON.stringify(payload),
+    })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.error || `API ${name} failed`)
+    return data
+  }
+
+  window.API = {
+    // Public reads
+    getEvents() { return call('get-events', {}) },
+    getShows(eventId) { return call('get-shows', { event_id: eventId }) },
+    getSeatMap(showId) { return call('get-seat-map', { show_id: showId }) },
+    getBookings() { return call('get-bookings', {}) },
+    getTicket(ticketId) { return call('get-ticket', { ticket_id: ticketId }) },
+
+    // Booking / payment
+    lockSeats(showId, seatIds) { return call('lock-seats', { show_id: showId, seat_ids: seatIds }) },
+    createOrder(showId, seats, promoCode) {
+      return call('create-razorpay-order', {
+        show_id: showId,
+        seats: seats.map(s => ({ seat_id: s.seat_id, category: s.category })),
+        promo_code: promoCode || undefined,
+      })
+    },
+    verifyPayment(payload) { return call('verify-payment', payload) },
+    releaseSeats(showId, seatIds) { return call('release-seats', { show_id: showId, seat_ids: seatIds }) },
+
+    // Admin
+    admin(resource, action, data = {}) { return call('admin-query', { resource, action, ...data }) },
+    adminDashboard() { return this.admin('dashboard', 'stats') },
+    adminEvents(action, data) { return this.admin('events', action, data) },
+    adminShows(action, data) { return this.admin('shows', action, data) },
+    adminSeats(action, data) { return this.admin('seats', action, data) },
+    adminBookings(action, data) { return this.admin('bookings', action, data) },
+    adminTickets(action, data) { return this.admin('tickets', action, data) },
+    adminPromos(action, data) { return this.admin('promos', action, data) },
+    adminReports() { return this.admin('reports', 'all') },
+    adminAudit() { return this.admin('audit', 'list') },
+  }
+})()

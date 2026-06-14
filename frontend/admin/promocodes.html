@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Promo Codes - CSM Admin</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/admin/css/admin.css" />
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="/js/config.js"></script>
+  <script src="/js/api.js"></script>
+</head>
+<body>
+  <div class="admin-layout">
+    <aside class="admin-sidebar" id="adminSidebar"></aside>
+    <main class="admin-main">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+        <h1>Promo Codes</h1>
+        <button class="btn btn-primary" onclick="showPromoModal()">+ New Promo Code</button>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Code</th><th>Discount</th><th>Uses</th><th>Expiry</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="promosBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-overlay" id="promoModal" style="display:none;">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="promoModalTitle">New Promo Code</h2>
+        <button class="modal-close" onclick="closePromoModal()">&times;</button>
+      </div>
+      <form id="promoForm">
+        <input type="hidden" id="promoId" />
+        <div class="form-group">
+          <label class="form-label">Code</label>
+          <input class="form-input" id="promoCode" required placeholder="SAVE50" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <input class="form-input" id="promoDescription" placeholder="Get ₹50 off" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Discount Type</label>
+          <select class="form-input form-select" id="promoType" onchange="togglePromoValue()">
+            <option value="FIXED">Fixed (₹)</option><option value="PERCENTAGE">Percentage (%)</option><option value="COMPLIMENTARY">Complimentary (100%)</option>
+          </select>
+        </div>
+        <div class="form-group" id="promoValueGroup">
+          <label class="form-label">Discount Value</label>
+          <input class="form-input" type="number" id="promoValue" value="50" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Usage Limit</label>
+          <input class="form-input" type="number" id="promoUsageLimit" value="100" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Expiry Date</label>
+          <input class="form-input" type="date" id="promoExpiry" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-input form-select" id="promoStatus">
+            <option value="Active">Active</option><option value="Inactive">Inactive</option>
+          </select>
+        </div>
+        <button class="btn btn-primary btn-block" type="submit">Save Promo Code</button>
+      </form>
+    </div>
+  </div>
+  <script src="/admin/js/promocodes.js"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+// Admin Dashboard
+async function loadDashboard() {
+  const container = document.getElementById('dashboardContent')
+  try {
+    const stats = await API.adminDashboard()
+    container.innerHTML = `<div class="grid grid-4">${Object.entries({ total_events:'Total Events', total_shows:'Total Shows', total_bookings:'Total Bookings', total_revenue:'Total Revenue' }).map(([k,l]) => `<div class="card"><h3>${l}</h3><p style="font-size:1.5rem;font-weight:700;">${k==='total_revenue'?'₹'+Number(stats[k]||0).toLocaleString():stats[k]||0}</p></div>`).join('')}</div>
+    <div class="card" style="margin-top:1.5rem;"><h3>Recent Bookings</h3><table class="table">${((stats.recent_bookings||[]).map(b => `<tr><td>#${b.id.slice(0,8)}</td><td>₹${b.total_amount}</td><td>${b.status}</td><td>${new Date(b.created_at).toLocaleString()}</td></tr>`).join('')||'<tr><td colspan="4">No bookings</td></tr>')}</table></div>`
+  } catch (err) { container.innerHTML = `<div class="alert alert-danger">${err.message}</div>` }
+}
+document.addEventListener('DOMContentLoaded', loadDashboard)

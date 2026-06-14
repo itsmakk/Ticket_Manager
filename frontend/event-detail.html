@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Event Details - CSM Auditorium</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <script src="/js/config.js"></script>
+  <script src="/js/api.js"></script>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <a href="/" class="header-brand">CSM Auditorium</a>
+      <nav class="nav">
+        <a href="/">Home</a>
+        <a href="/events.html">Events</a>
+        <a href="/login.html" id="loginBtn">Login</a>
+        <a href="/register.html">Register</a>
+        <a href="/profile.html" id="profileLink" style="display:none">My Bookings</a>
+        <a href="#" id="logoutBtn" style="display:none">Logout</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="container" style="padding: 2rem 1rem;">
+    <div id="eventDetail"></div>
+
+    <div id="showSelector" style="display:none;margin-top:2rem;">
+      <h2>Select Show</h2>
+      <div class="grid grid-3" id="showsGrid"></div>
+    </div>
+
+    <div id="seatSelection" style="display:none;margin-top:2rem;">
+      <h2>Select Seats</h2>
+      <div class="grid grid-2">
+        <div>
+          <div id="seatMap"></div>
+        </div>
+        <div>
+          <div class="card" id="bookingSummary">
+            <h3>Booking Summary</h3>
+            <div id="summaryContent">
+              <p style="color:var(--gray-500);">Select seats to see summary.</p>
+            </div>
+            <div id="promoSection" style="margin:1rem 0;">
+              <div style="display:flex;gap:0.5rem;">
+                <input class="form-input" id="promoInput" placeholder="Promo code" />
+                <button class="btn btn-outline btn-sm" onclick="applyPromo()">Apply</button>
+              </div>
+              <div id="promoMessage" style="font-size:0.85rem;margin-top:0.3rem;"></div>
+            </div>
+            <button class="btn btn-success btn-block btn-lg" id="proceedBtn" onclick="proceedToPayment()" disabled>Proceed to Payment</button>
+            <div id="paymentSection" style="display:none;margin-top:1rem;">
+              <div id="paymentTimer" style="text-align:center;font-size:1.2rem;font-weight:700;color:var(--danger);margin-bottom:1rem;">05:00</div>
+              <button class="btn btn-primary btn-block btn-lg" id="payBtn" onclick="initiatePayment()">Pay Now</button>
+              <p style="text-align:center;font-size:0.85rem;color:var(--gray-500);margin-top:0.5rem;">Secured by Razorpay</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer style="background: var(--gray-800); color: white; padding: 2rem 0; text-align: center; margin-top: 2rem;">
+    <div class="container">
+      <p>&copy; 2026 CSM Auditorium</p>
+    </div>
+  </footer>
+
+  <script src="/js/booking.js"></script>
+</body>
+</html>
