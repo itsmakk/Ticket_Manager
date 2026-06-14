@@ -13,6 +13,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (sb) {
     const { data: { session } } = await sb.auth.getSession()
     if (!session) { window.location.href = '/login.html?redirect=/admin/index.html'; return }
+    // Set welcome name
+    const du = document.getElementById('dashUserName')
+    if (du) {
+      const u = localStorage.getItem('sb-user')
+      if (u) {
+        const user = JSON.parse(u)
+        const meta = user?.user_metadata || {}
+        du.textContent = meta?.full_name || user?.email?.split('@')[0] || 'Administrator'
+      }
+    }
   }
   loadDashboard()
   // Logout

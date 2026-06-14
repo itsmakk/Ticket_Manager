@@ -211,46 +211,104 @@ The system shall avoid unnecessary complexity and enterprise-level features not 
 
 # 3. User Roles
 
-## 3.1 Public User
+## 3.1 Roles Overview
 
-Public users shall be able to:
+The system supports four user roles, enforced by a database CHECK constraint on the `profiles.role` column. All new users default to `user` on registration. Role changes can only be performed by an administrator via the **Users** management page (`/admin/users.html`) or direct SQL.
+
+| Role      | Default on Signup | Description |
+|-----------|:-----------------:|-------------|
+| user      | ✅                 | Regular registered user — browses events and books tickets online |
+| counter   | ❌                 | Staff member — creates bookings on behalf of walk-in customers (cash/UPI) |
+| scanner   | ❌                 | Gate staff — verifies QR tickets at the auditorium entrance |
+| admin     | ❌                 | Full system access — manages events, shows, seats, bookings, promo codes, reports, users, audit logs |
+
+---
+
+## 3.2 User (Registered User)
+
+Users shall be able to:
 
 * Register
 * Login
 * Browse events
 * Select seats
-* Purchase tickets
+* Purchase tickets (online via Razorpay)
 * View booking history
 * Download tickets
 
 ---
 
-## 3.2 Counter Operator
+## 3.3 Counter Operator
 
 Counter operators shall be able to:
 
 * Create bookings on behalf of customers
 * Allocate seats
-* Record payment mode
+* Record payment mode (CASH / UPI)
 * Generate tickets
 * Print tickets
 
-Counter bookings shall be tracked separately from online bookings.
+Counter bookings shall be tracked separately from online bookings with `booking_source = 'ADMIN_COUNTER'`.
+
+Access is enforced through the **counter booking admin page**; the Edge Function does not currently perform a separate `counter` role check (counter operators are managed via admin-listed profiles).
 
 ---
 
-## 3.3 Administrator
+## 3.4 Scanner
+
+Scanners shall be able to:
+
+* Scan QR tickets
+* Verify ticket validity
+* View ticket details
+* Mark tickets as used
+
+Scanners shall **not** have access to any other admin functionality (events, shows, bookings, reports, users, etc.).
+
+The admin sidebar hides all non-verify links for scanner-role users. API-level enforcement is handled by the `admin-query` Edge Function, which only permits the `tickets` resource for the `scanner` role.
+
+Scanners use a dedicated mobile-friendly verification page at `/scanner/index.html`.
+
+---
+
+## 3.5 Administrator
 
 Administrators shall be able to:
 
-* Manage events
-* Manage shows
-* Manage bookings
-* Manage promo codes
-* View reports
+* Manage events (CRUD)
+* Manage shows (CRUD)
+* Manage seats (generate layout, view)
+* Manage bookings (list, cancel)
+* Manage promo codes (CRUD)
+* View reports and analytics
 * Verify tickets
-* Manage maintenance mode
+* Manage users — list all users, change roles (user / counter / scanner / admin)
+* Enable / disable maintenance mode
 * View audit logs
+
+Administrators **cannot demote themselves** — attempting to change their own role to a non-admin value is rejected by the Edge Function.
+
+---
+
+## 3.6 Role Permissions Matrix
+
+| Feature                 | User | Counter | Scanner | Admin |
+| ----------------------- | :--: | :-----: | :-----: | :---: |
+| Browse events           | ✅   | ✅      | ✅      | ✅    |
+| Book tickets (online)   | ✅   | ❌¹     | ❌      | ❌¹   |
+| Counter booking         | ❌   | ✅      | ❌      | ✅    |
+| View own bookings       | ✅   | ✅      | ✅      | ✅    |
+| Cancel booking          | ❌   | ❌      | ❌      | ✅    |
+| Manage events           | ❌   | ❌      | ❌      | ✅    |
+| Manage shows            | ❌   | ❌      | ❌      | ✅    |
+| Manage seats            | ❌   | ❌      | ❌      | ✅    |
+| Manage promo codes      | ❌   | ❌      | ❌      | ✅    |
+| View reports            | ❌   | ❌      | ❌      | ✅    |
+| Verify tickets          | ❌   | ❌      | ✅      | ✅    |
+| Manage users / roles    | ❌   | ❌      | ❌      | ✅    |
+| View audit logs         | ❌   | ❌      | ❌      | ✅    |
+
+> ¹ Counter and admin can make counter bookings through the admin panel for walk-in customers.
 
 ---
 
@@ -267,6 +325,16 @@ Supported features:
 * Password Reset
 * Email Verification
 * Session Management
+
+---
+
+## 4.1.1 Role Assignment
+
+Every new user is automatically assigned the `user` role upon registration via a database trigger (`handle_new_user`).
+
+To change a user's role (to `counter`, `scanner`, or `admin`), an existing administrator must use the **Users** management page at `/admin/users.html`. This page lists all profiles and provides a role dropdown for each user.
+
+Role changes are logged to the `audit_logs` table with action `USER_ROLE_CHANGED` and cannot be performed by non-admin users. An admin cannot demote themselves — the Edge Function rejects self-demotion attempts.
 
 ---
 
@@ -1095,12 +1163,14 @@ Sensitive data shall not be exposed.
 
 ## 13.3 Ticket Validation
 
-Authorized staff shall be able to:
+Authorized staff (users with `scanner` or `admin` role) shall be able to:
 
 * Scan QR code
 * Verify ticket
 * View ticket details
 * Mark ticket as used
+
+Scanner-role users access a dedicated mobile-optimized verification page (`/scanner/index.html`) that contains no other admin functionality. Admin-role users can also verify tickets through the admin panel at `/admin/verify.html`.
 
 ---
 
@@ -1601,16 +1671,20 @@ Passwords shall never be stored directly in application tables.
 
 ## 19.2 Authorization
 
-Access shall be restricted based on user role.
+Access shall be restricted based on user role. The four roles are `user`, `counter`, `scanner`, and `admin`.
 
 Examples:
 
-| Feature        | User | Counter Operator | Admin |
-| -------------- | ---- | ---------------- | ----- |
-| Book Ticket    | Yes  | Yes              | Yes   |
-| Create Event   | No   | No               | Yes   |
-| Cancel Booking | No   | No               | Yes   |
-| View Reports   | No   | No               | Yes   |
+| Feature        | User | Counter | Scanner | Admin |
+| -------------- | :--: | :-----: | :-----: | :---: |
+| Book Ticket    | Yes  | Yes¹    | No      | Yes¹  |
+| Verify Ticket  | No   | No      | Yes     | Yes   |
+| Create Event   | No   | No      | No      | Yes   |
+| Cancel Booking | No   | No      | No      | Yes   |
+| View Reports   | No   | No      | No      | Yes   |
+| Manage Users   | No   | No      | No      | Yes   |
+
+> ¹ Counter and admin can create counter bookings for walk-in customers through the admin panel.
 
 ---
 

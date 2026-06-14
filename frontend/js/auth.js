@@ -72,17 +72,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const user = JSON.parse(u)
     const email = user?.email || ''
     const meta = user?.user_metadata || {}
+    const meta = user?.user_metadata || {}
     const name = meta?.full_name || email.split('@')[0] || 'User'
     aun.textContent = name
     if (aue) aue.textContent = email
-    if (aum) aum.textContent = meta?.mobile ? `📱 ${meta.mobile}` : ''
+    if (aum) aum.textContent = meta?.mobile ? `Mobile: ${meta.mobile}` : ''
     if (aur) {
       const sb = getAuthSB()
       if (sb) {
         sb.from('profiles').select('role, mobile, email').eq('id', user.id).single().then(({ data }) => {
           if (data) {
+            const roleDisplay = data.role.charAt(0).toUpperCase() + data.role.slice(1)
+            aun.textContent = `Welcome ${roleDisplay}, ${name}`
             if (aur) aur.textContent = data.role
-            if (aum && data.mobile && !meta?.mobile) aum.textContent = `📱 ${data.mobile}`
+            if (aum && data.mobile && !meta?.mobile) aum.textContent = `Mobile: ${data.mobile}`
             // Role-based sidebar hiding
             const isAdmin = data.role === 'admin'
             const allowedForNonAdmin = new Set(['Verify Tickets', 'View Site', 'Logout', 'CSM Admin'])

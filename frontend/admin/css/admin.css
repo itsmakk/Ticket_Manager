@@ -56,6 +56,19 @@
 .role-user { background: #e5e7eb; color: #374151; }
 .role-select { padding: 0.25rem; border-radius: var(--radius); border: 1px solid var(--gray-300); }
 
+.dash-header {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--gray-200);
+}
+.dash-header h1 {
+  margin-bottom: 0.25rem;
+}
+.dash-welcome {
+  color: var(--gray-500);
+  font-size: 0.9rem;
+  margin: 0;
+}
 .admin-main { flex: 1; padding: 1.5rem; background: var(--gray-50); }
 .admin-main h1 { margin-bottom: 1.5rem; }
 
