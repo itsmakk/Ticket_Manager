@@ -43,7 +43,7 @@ if (forgotForm) {
     else { alertDiv.innerHTML = '<div class="alert alert-success">Reset link sent to your email.</div>' }
   })
 }
-// Toggle nav based on login state
+// Toggle nav based on login state + attach logout handler
 document.addEventListener('DOMContentLoaded', () => {
   const t = localStorage.getItem('sb-token')
   const u = localStorage.getItem('sb-user')
@@ -56,21 +56,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if (lb) lb.style.display = 'none'
     if (rb) rb.style.display = 'none'
     if (pl) pl.style.display = 'inline-block'
-    if (lo) lo.style.display = 'inline-block'
     if (un) { un.textContent = name; un.style.display = 'inline-block' }
   } else {
     if (lb) lb.style.display = 'inline-block'
     if (rb) rb.style.display = 'inline-block'
     if (pl) pl.style.display = 'none'
-    if (lo) lo.style.display = 'none'
     if (un) un.style.display = 'none'
   }
-})
-
-document.getElementById('logoutBtn')?.addEventListener('click', async (e) => {
-  e.preventDefault()
-  const sb = getAuthSB()
-  await sb.auth.signOut()
-  localStorage.removeItem('sb-token'); localStorage.removeItem('sb-user')
-  window.location.href = '/'
+  // Attach logout — now that DOM is loaded
+  if (lo) {
+    lo.style.display = (t && u) ? 'inline-block' : 'none'
+    lo.addEventListener('click', async (e) => {
+      e.preventDefault()
+      const sb = getAuthSB()
+      await sb.auth.signOut()
+      localStorage.removeItem('sb-token'); localStorage.removeItem('sb-user')
+      window.location.href = '/'
+    })
+  }
 })
