@@ -51,6 +51,7 @@
     adminSeats(action, data) { return this.admin('seats', action, data) },
     adminBookings(action, data) { return this.admin('bookings', action, data) },
     adminTickets(action, data) { return this.admin('tickets', action, data) },
+    verifyTicket(ticketId) { return this.adminTickets('verify', { ticket_id: ticketId }) },
     adminPromos(action, data) { return this.admin('promos', action, data) },
     adminReports() { return this.admin('reports', 'all') },
     adminAudit() { return this.admin('audit', 'list') },

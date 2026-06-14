@@ -10,10 +10,13 @@ export function getSupabase(serviceRoleKey: string) {
   return createClient(Deno.env.get('SUPABASE_URL')!, serviceRoleKey)
 }
 
-export function getUser(req: Request) {
-  const auth = req.headers.get('Authorization')?.replace('Bearer ', '')
-  if (!auth) throw new Error('Unauthorized')
-  return auth
+export async function getUser(req: Request) {
+  const token = req.headers.get('Authorization')?.replace('Bearer ', '')
+  if (!token) throw new Error('Unauthorized')
+  const supabase = getSupabase(Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
+  const { data: { user }, error } = await supabase.auth.getUser(token)
+  if (error || !user) throw new Error('Unauthorized')
+  return user.id
 }
 
 export function corsResponse(body: any, status = 200) {

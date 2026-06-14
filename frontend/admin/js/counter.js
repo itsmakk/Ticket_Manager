@@ -1,39 +1,72 @@
 async function loadCounterEvents() {
-  const sel = document.getElementById('eventSelect')
+  const sel = document.getElementById('counterShow')
   const events = await API.adminEvents('list')
-  sel.innerHTML = '<option value="">Select Event</option>'+(events||[]).filter(e=>e.status==='Active').map(e=>`<option value="${e.id}">${e.title}</option>`).join('')
+  sel.innerHTML = '<option value="">Select Show</option>'+(events||[]).filter(e=>e.status==='Active').map(e => `<option value="${e.id}">${e.title}</option>`).join('')
 }
-async function loadCounterShows() {
-  const eid = document.getElementById('eventSelect').value; const sel = document.getElementById('showSelect'); const sec = document.getElementById('counterSeats'); sec.style.display='none'
-  sel.innerHTML = '<option value="">Select Show</option>'; if(!eid) return
-  const shows = await API.getShows(eid)
-  sel.innerHTML += (shows||[]).map(s=>`<option value="${s.id}">${s.show_date} ${s.start_time}</option>`).join('')
-}
-async function loadCounterSeatMap() {
-  const sid = document.getElementById('showSelect').value; const sec = document.getElementById('counterSeats')
-  if(!sid){sec.style.display='none';return}
-  sec.style.display='block'
+async function loadCounterSeats() {
+  const sid = document.getElementById('counterShow').value
+  const sec = document.getElementById('counterSeatArea')
+  if (!sid) { sec.innerHTML = ''; return }
+  const events = await API.adminEvents('list')
+  const event = events.find(e => e.id === sid) || events[0]
+  if (!event) return
+  const shows = await API.getShows(event.id)
+  const show = shows.find(s => s.id === sid) || shows[0]
+  if (!show) return
   const { seats } = await API.getSeatMap(sid)
-  const html = Object.entries(seats||{}).map(([r,row]) => `<div class="seat-row"><span class="seat-row-label">${r}</span>${row.map(s => `<div class="seat ${s.status}" title="${s.seat_number} (${s.category})">${s.seat_number.replace(r,'')}</div>`).join('')}</div>`).join('')
-  document.getElementById('counterSeatMap').innerHTML = `<div class="screen-indicator">SCREEN</div><div class="seat-layout">${html}</div>`
+  let html = '<div class="screen-indicator">SCREEN</div><div class="seat-layout">'
+  Object.entries(seats||{}).forEach(([r, row]) => {
+    html += `<div class="seat-row"><span class="seat-row-label">${r}</span>`
+    html += row.map(s => `<div class="seat ${s.status}" onclick="selectCounterSeat('${s.id}')" title="${s.seat_number} (${s.category})">${s.seat_number.replace(r,'')}</div>`).join('')
+    html += '</div>'
+  })
+  html += '</div>'
+  sec.innerHTML = html
 }
-async function counterBooking() {
-  const sid = document.getElementById('showSelect').value; const email = document.getElementById('customerEmail').value; const name = document.getElementById('customerName').value
-  if(!sid||!email||!name) return alert('Fill all fields')
-  const events=await API.adminEvents('list'); const event=events.find((e)=>{return true}); if(!event) return
-  const shows = await API.getShows(event.id); const show = shows.find(s=>s.id===sid); if(!show) return
-  const seats = await API.adminSeats('list',{show_id:sid})
-  const avail = (seats||[]).filter(s=>s.status==='available')
-  if(!avail.length) return alert('No available seats')
-  const seat = avail[0]; const prices={premium:show.price_premium,gold:show.price_gold,silver:show.price_silver}; const amt = prices[seat.category]||200
-  await API.lockSeats(sid, [seat.id])
+const selectedCounterSeats = []
+function selectCounterSeat(seatId) {
+  const idx = selectedCounterSeats.indexOf(seatId)
+  if (idx === -1) selectedCounterSeats.push(seatId)
+  else selectedCounterSeats.splice(idx, 1)
+  document.getElementById('counterSelectedSeats').innerHTML = `<p>Selected: ${selectedCounterSeats.length > 0 ? selectedCounterSeats.length + ' seat(s)' : 'Select seats to book.'}</p>`
+}
+document.getElementById('counterForm')?.addEventListener('submit', async (e) => {
+  e.preventDefault()
+  const sid = document.getElementById('counterShow').value
+  const name = document.getElementById('counterName').value
+  const mobile = document.getElementById('counterMobile').value
+  const email = document.getElementById('counterEmail').value
+  const payment = document.getElementById('counterPayment').value
+  if (!sid || !name || !mobile) return alert('Fill required fields')
+  if (!selectedCounterSeats.length) return alert('Select at least one seat')
+  const events = await API.adminEvents('list')
+  const event = events.find(e => e.id === sid) || events[0]
+  if (!event) return alert('Event not found')
+  const shows = await API.getShows(event.id)
+  const show = shows.find(s => s.id === sid)
+  if (!show) return alert('Show not found')
+  const seats = await API.adminSeats('list', { show_id: sid })
+  const selected = seats.filter(s => selectedCounterSeats.includes(s.id))
+  if (!selected.length) return alert('Selected seats not available')
+  const prices = { premium: show.price_premium, gold: show.price_gold, silver: show.price_silver }
+  const total = selected.reduce((sum, s) => sum + (prices[s.category] || 200), 0)
+  await API.lockSeats(sid, selectedCounterSeats)
   const sb = window.__apiSupabase
-  const { data:{user} } = await sb.auth.admin?.createUser({email,password:'Temp123!',email_confirm:true,user_metadata:{full_name:name}}) || {data:{user:null}}
-  const uid = user?.id || email
-  await API.verifyPayment({ razorpay_order_id:'counter', razorpay_payment_id:'counter-'+Date.now(), razorpay_signature:'counter', show_id:sid, event_id:event.id, seats:[{seat_id:seat.id,category:seat.category}], total_amount:amt, discount_amount:0, promo_code_id:null, user_id:uid, booking_source:'COUNTER' })
-  alert('Booking successful!'); loadCounterSeatMap()
-}
-document.getElementById('eventSelect')?.addEventListener('change', loadCounterShows)
-document.getElementById('showSelect')?.addEventListener('change', loadCounterSeatMap)
-document.getElementById('counterBtn')?.addEventListener('click', counterBooking)
+  let uid = email
+  if (email) {
+    const { data: { user } } = await sb.auth.admin?.createUser({ email, password: 'Temp123!', email_confirm: true, user_metadata: { full_name: name } }) || { data: { user: null } }
+    if (user) uid = user.id
+  }
+  await API.verifyPayment({
+    razorpay_order_id: 'counter', razorpay_payment_id: 'counter-' + Date.now(), razorpay_signature: 'counter',
+    show_id: sid, event_id: event.id,
+    seats: selected.map(s => ({ seat_id: s.id, category: s.category })),
+    total_amount: total, discount_amount: 0, promo_code_id: null,
+    user_id: uid, booking_source: 'COUNTER',
+  })
+  alert('Booking successful!')
+  selectedCounterSeats.length = 0
+  document.getElementById('counterSelectedSeats').innerHTML = '<p>Select seats to book.</p>'
+  loadCounterSeats()
+})
 document.addEventListener('DOMContentLoaded', loadCounterEvents)

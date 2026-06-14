@@ -1,3 +1,16 @@
+function showShowModal() {
+  const sel = document.getElementById('showEventId')
+  API.adminEvents('list').then(events => {
+    sel.innerHTML = '<option value="">Select Event</option>' + (events||[]).map(e => `<option value="${e.id}">${e.title}</option>`).join('')
+  })
+  document.getElementById('showModalTitle').textContent = 'New Show'
+  document.getElementById('showId').value = ''
+  document.getElementById('showForm').reset()
+  document.getElementById('showModal').style.display = 'flex'
+}
+function closeShowModal() {
+  document.getElementById('showModal').style.display = 'none'
+}
 async function loadShows() {
   const sel = document.getElementById('eventFilter')
   const events = await API.adminEvents('list')
@@ -11,10 +24,44 @@ async function filterShows() {
     <td><button class="btn btn-sm btn-primary" onclick="editShow('${s.id}')">Edit</button><button class="btn btn-sm btn-danger" onclick="deleteShow('${s.id}')">Delete</button></td></tr>`).join('')
 }
 document.getElementById('showForm')?.addEventListener('submit', async (e) => {
-  e.preventDefault(); const f=e.target; const events=await API.adminEvents('list'); const ev = (events||[]).find(x=>x.title===f.event_title.value); if(!ev) return alert('Select valid event')
-  const d={event_id:ev.id,show_date:f.show_date.value,start_time:f.start_time.value,price_premium:parseFloat(f.price_premium.value),price_gold:parseFloat(f.price_gold.value),price_silver:parseFloat(f.price_silver.value),status:f.status.value}
-  await API.adminShows(f._id?.value?'update':'create',f._id?.value?{...d,id:f._id.value}:d); filterShows(); f.reset(); f._id?.remove(); document.getElementById('formTitle').textContent='Add Show'
+  e.preventDefault()
+  const id = document.getElementById('showId').value
+  const d = {
+    event_id: document.getElementById('showEventId').value,
+    show_date: document.getElementById('showDate').value,
+    start_time: document.getElementById('showTime').value,
+    price_premium: parseFloat(document.getElementById('pricePremium').value),
+    price_gold: parseFloat(document.getElementById('priceGold').value),
+    price_silver: parseFloat(document.getElementById('priceSilver').value),
+    status: document.getElementById('showStatus').value,
+  }
+  if (!d.event_id) return alert('Select an event')
+  if (id) d.id = id
+  await API.adminShows(id ? 'update' : 'create', d)
+  filterShows()
+  e.target.reset()
+  document.getElementById('showId').value = ''
+  closeShowModal()
 })
-async function editShow(id) { const events=await API.adminEvents('list'); for(const e of events) { const s=await API.getShows(e.id); const r=(s||[]).find(x=>x.id===id); if(r){r.event_title=e.title; const f=document.getElementById('showForm'); f._id=r.id; f.event_title.value=r.event_title; f.show_date.value=r.show_date; f.start_time.value=r.start_time; f.price_premium.value=r.price_premium; f.price_gold.value=r.price_gold; f.price_silver.value=r.price_silver; f.status.value=r.status; document.getElementById('formTitle').textContent='Edit Show'; break }}}
+async function editShow(id) {
+  const events = await API.adminEvents('list')
+  for (const e of events) {
+    const s = await API.getShows(e.id)
+    const r = (s||[]).find(x => x.id === id)
+    if (r) {
+      document.getElementById('showId').value = r.id
+      document.getElementById('showEventId').value = r.event_id
+      document.getElementById('showDate').value = r.show_date
+      document.getElementById('showTime').value = r.start_time
+      document.getElementById('pricePremium').value = r.price_premium
+      document.getElementById('priceGold').value = r.price_gold
+      document.getElementById('priceSilver').value = r.price_silver
+      document.getElementById('showStatus').value = r.status
+      document.getElementById('showModalTitle').textContent = 'Edit Show'
+      document.getElementById('showModal').style.display = 'flex'
+      break
+    }
+  }
+}
 async function deleteShow(id) { if(!confirm('Delete?'))return; await API.adminShows('delete',{id}); filterShows() }
 document.addEventListener('DOMContentLoaded', loadShows)

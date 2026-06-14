@@ -4,7 +4,7 @@ Deno.serve(async (req) => {
   const cors = handleCors(req)
   if (cors) return cors
   try {
-    const userId = getUser(req)
+    const userId = await getUser(req)
     const supabase = getSupabase(Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
     const { data: bookings, error } = await supabase
       .from('bookings')
