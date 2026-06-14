@@ -63,10 +63,21 @@ document.addEventListener('DOMContentLoaded', () => {
     if (pl) pl.style.display = 'none'
     if (un) un.style.display = 'none'
   }
-  // Attach logout — now that DOM is loaded
+  // Attach frontend logout
   if (lo) {
     lo.style.display = (t && u) ? 'inline-block' : 'none'
     lo.addEventListener('click', async (e) => {
+      e.preventDefault()
+      const sb = getAuthSB()
+      await sb.auth.signOut()
+      localStorage.removeItem('sb-token'); localStorage.removeItem('sb-user')
+      window.location.href = '/'
+    })
+  }
+  // Attach admin sidebar logout
+  const alo = document.getElementById('adminLogout')
+  if (alo) {
+    alo.addEventListener('click', async (e) => {
       e.preventDefault()
       const sb = getAuthSB()
       await sb.auth.signOut()

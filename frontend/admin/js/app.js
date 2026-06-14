@@ -7,4 +7,19 @@ async function loadDashboard() {
     <div class="card" style="margin-top:1.5rem;"><h3>Recent Bookings</h3><table class="table">${((stats.recent_bookings||[]).map(b => `<tr><td>#${b.id.slice(0,8)}</td><td>₹${b.total_amount}</td><td>${b.status}</td><td>${new Date(b.created_at).toLocaleString()}</td></tr>`).join('')||'<tr><td colspan="4">No bookings</td></tr>')}</table></div>`
   } catch (err) { container.innerHTML = `<div class="alert alert-danger">${err.message}</div>` }
 }
-document.addEventListener('DOMContentLoaded', loadDashboard)
+document.addEventListener('DOMContentLoaded', async () => {
+  // Check auth
+  const sb = window.__apiSupabase
+  if (sb) {
+    const { data: { session } } = await sb.auth.getSession()
+    if (!session) { window.location.href = '/login.html?redirect=/admin/index.html'; return }
+  }
+  loadDashboard()
+  // Logout
+  document.getElementById('adminLogout')?.addEventListener('click', async (e) => {
+    e.preventDefault()
+    await sb.auth.signOut()
+    localStorage.removeItem('sb-token'); localStorage.removeItem('sb-user')
+    window.location.href = '/'
+  })
+})
