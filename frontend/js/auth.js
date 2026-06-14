@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (aum && data.mobile && !meta?.mobile) aum.textContent = `Mobile: ${data.mobile}`
             // Role-based sidebar hiding
             const isAdmin = data.role === 'admin'
-            const allowedForNonAdmin = new Set(['Verify Tickets', 'View Site', 'Logout', 'CSM Admin'])
+            const allowedForNonAdmin = new Set(['Verify Tickets', 'View Site', 'Logout', 'CSM Admin', 'Book Tickets'])
             document.querySelectorAll('.admin-sidebar a').forEach(a => {
               const text = a.textContent.trim()
               if (!isAdmin && !allowedForNonAdmin.has(text)) {
