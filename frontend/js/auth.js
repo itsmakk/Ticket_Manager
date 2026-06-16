@@ -69,37 +69,45 @@ document.addEventListener('DOMContentLoaded', () => {
     if (lb) lb.style.display = 'none'
     if (rb) rb.style.display = 'none'
     if (pl) pl.style.display = 'inline-block'
-    if (un) { un.style.display = 'inline-block' }
+    if (un) { un.textContent = name; un.style.display = 'inline-block' }
   } else {
     if (lb) lb.style.display = 'inline-block'
     if (rb) rb.style.display = 'inline-block'
     if (pl) pl.style.display = 'none'
     if (un) un.style.display = 'none'
   }
-  // Hide sidebar links based on role
+  // Show sidebar links based on role (hide everything first to avoid flash)
   if (t && user) {
+    const sidebarLinks = document.querySelectorAll('.admin-sidebar a')
+    const allowedByRole = {
+      counter: new Set(['Counter Booking', 'Book Tickets', 'CSM Admin']),
+      scanner: new Set(['Verify Tickets', 'Book Tickets', 'CSM Admin']),
+    }
     API.getProfile().then(profile => {
       if (profile) {
-        const allowedByRole = {
-          counter: new Set(['Counter Booking', 'View Site', 'Logout', 'CSM Admin']),
-          scanner: new Set(['Verify Tickets', 'View Site', 'Logout', 'CSM Admin']),
-        }
-        const allowedLinks = allowedByRole[profile.role]
-        document.querySelectorAll('.admin-sidebar a').forEach(a => {
+        sidebarLinks.forEach(a => {
           const text = a.textContent.trim()
-          if (profile.role !== 'admin' && !allowedLinks?.has(text)) {
-            a.style.display = 'none'
+          if (profile.role === 'admin') {
+            a.style.display = ''
+          } else {
+            a.style.display = allowedByRole[profile.role]?.has(text) ? '' : 'none'
           }
         })
       }
-    }).catch(() => {})
+    }).catch(() => {
+      sidebarLinks.forEach(a => a.style.display = 'none')
+    })
+    // Hide sidebar links instantly (before API responds) to prevent flash
+    sidebarLinks.forEach(a => a.style.display = 'none')
   }
 
-  // Show Admin Panel link for admin users via API
-  const adminLink = document.getElementById('adminPanelLink')
-  if (adminLink && t && user) {
+  // Hide Admin Panel header link for non-admin users
+  if (t && user) {
     API.getProfile().then(profile => {
-      if (profile?.role === 'admin') adminLink.style.display = 'inline-block'
+      if (profile) {
+        const adminLink = document.getElementById('adminPanelLink')
+        if (adminLink) adminLink.style.display = profile.role === 'admin' ? '' : 'none'
+      }
     }).catch(() => {})
   }
 
