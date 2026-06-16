@@ -127,10 +127,10 @@
 | BUG-019 | Critical | cancel-booking + verify-payment: Email IIFE never awaited — Edge Function may terminate before fire-and-forget email sends | Solved | Code Review |
 | BUG-020 | Critical | get-seat-map: Multi-letter row sort broken — parseInt(s.seat_number.slice(1)) produces NaN for rows like "AA01" | Solved | Code Review |
 | BUG-021 | Critical | admin-query: Update payloads include id — client can send different id, rewriting PK and orphaning FK references | Solved | Code Review |
-| BUG-022 | Critical | 001_initial_schema: cancel_booking() INSERT uses non-existent columns module, record_id (should be entity_type, entity_id) | Not Completed | Code Review |
-| BUG-023 | Critical | 001_initial_schema: Promo codes RLS references non-existent `status` column (table has `is_active` boolean) | Not Completed | Code Review |
-| BUG-024 | Critical | 002_functions: get_available_seats() references non-existent column `row_number` (should be `row_label`) | Not Completed | Code Review |
-| BUG-025 | Critical | 20260615100003: Append-only trigger blocks retention cleanup — DELETE FROM audit_logs in cleanup function fires trigger and always raises exception | Not Completed | Code Review |
+| BUG-022 | Critical | 001_initial_schema: cancel_booking() INSERT uses non-existent columns module, record_id (should be entity_type, entity_id) | Solved | Code Review |
+| BUG-023 | Critical | 001_initial_schema: Promo codes RLS references non-existent `status` column (table has `is_active` boolean) | Solved | Code Review |
+| BUG-024 | Critical | 002_functions: get_available_seats() references non-existent column `row_number` (should be `row_label`) | Solved | Code Review |
+| BUG-025 | Critical | 20260615100003: Append-only trigger blocks retention cleanup — DELETE FROM audit_logs in cleanup function fires trigger and always raises exception | Solved | Code Review |
 | BUG-026 | High | booking.js: XSS via inline onclick with unsanitized API data (s.id, seat_number, category) | Solved | Code Review |
 | BUG-027 | High | users.html: XSS via u.id injected into inline onclick and data attributes | Solved | Code Review |
 | BUG-028 | High | api.js: No guard on supabase client being undefined — if CDN fails, every API call crashes | Solved | Code Review |
@@ -142,7 +142,7 @@
 | BUG-034 | High | create-razorpay-order: price_${category} crashes if category has no matching price column | Solved | Code Review |
 | BUG-035 | High | verify-payment: Counter booking amount taken from client with no server-side validation | Solved | Code Review |
 | BUG-036 | High | admin-query: Scanner role gets full booking data including payment_id, razorpay_order_id | Solved | Code Review |
-| BUG-037 | High | 001_initial_schema: Infinite RLS recursion in profiles admin policy (self-referencing profiles) | Not Completed | Code Review |
+| BUG-037 | High | 001_initial_schema: Infinite RLS recursion in profiles admin policy (self-referencing profiles) | Solved | Code Review |
 | BUG-038 | Medium | booking.js: Multiple potential null dereferences on DOM elements | Solved | Code Review |
 | BUG-039 | Medium | get-ticket: JSON.stringify drops undefined keys — response may miss event_title, show_date, show_time | Solved | Code Review |
 | BUG-040 | Medium | scanner/index.html: Scanner never resumes after first QR scan — paused indefinitely | Solved |
@@ -159,6 +159,7 @@
 | BUG-052 | Medium | booking.js: Missing null check on `show` in `updateSummary()` — crashes if API returns null | Solved | Code Review |
 | BUG-053 | Critical | lock-seats: TOCTOU race on UPDATE (no affected-rows check); no lock ownership check (user can't refresh own locks); rollback stomps concurrent locks | Solved | Code Review |
 | BUG-055 | Low | counter.js: No visible error feedback when API calls fail; selected seats not cleared when switching shows | Solved | Code Review |
+| BUG-056 | High | booking.js and counter.js: redundant seat map API calls, lack of Razorpay load guard, counter form state reset leaks, and email recipient mapping. | Solved | Code Review |
 
 ---
 
@@ -193,6 +194,12 @@
 | BUG-052 | booking.js null show in updateSummary | Added null guard `if (!show) throw new Error(...)` after destructuring `show` from the API response. Prevents crash when seat map API returns null unexpectedly. | Code Review |
 | BUG-053 | lock-seats TOCTOU race + ownership + rollback | Fixed 3 issues: (1) Added lock ownership checks — fetches existing locks and only blocks if a DIFFERENT user holds the lock; allows users to refresh their own locks. (2) Changed to atomic upsert for seat_locks to handle re-locking. (3) Changed to SELECT-based UPDATE verification and only rolls back failed seats, not all requested seats. Applied to both backend/ and supabase/ copies. | Code Review |
 | BUG-055 | Counter.js silent failures + state leaks | Added visible error feedback (dropdown shows "Error loading shows", seat area shows "Failed to load seats"). Added null guard on `getElementById('counterShow')` to prevent crash if element is missing. Added `selectedCounterSeats.length = 0` and cleared "Selected Seats" display when switching shows to prevent stale selection state. | Code Review |
+| BUG-022 | cancel_booking() columns fix | Updated insert to use entity_type and entity_id instead of module and record_id. | Code Review |
+| BUG-023 | Promo codes RLS policy column fix | Changed policy reference from `status` to `is_active` column. | Code Review |
+| BUG-024 | get_available_seats() columns fix | Updated column name query selection to use `row_label` instead of `row_number`. | Code Review |
+| BUG-025 | Append-only trigger cleanup fix | Modified prevent_audit_log_modification() to bypass check when app.audit_cleanup is enabled, allowing retention deletes. | Code Review |
+| BUG-037 | Infinite RLS recursion in profiles | Replaced self-referencing check with direct `public.is_admin()` helper. | Code Review |
+| BUG-056 | Booking & Counter flow optimization and fixes | Cached show pricing in booking.js to avoid redundant getSeatMap API calls on seat clicks; added Razorpay load guard to booking.js; fixed counter booking confirmation email recipient to check customer_email and map customerName; integrated Maintenance mode sidebar navigation link. | Code Review |
 
 ---
 

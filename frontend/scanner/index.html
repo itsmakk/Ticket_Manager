@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ticket Scanner - CSM Auditorium</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="stylesheet" href="/css/style.css" />
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="https://unpkg.com/html5-qrcode"></script>
@@ -50,8 +51,9 @@ const resultDiv = document.getElementById('result')
 const scanBtn = document.getElementById('scanBtn')
 
 async function verifyTicket(id) {
-  const ticketId = id || ticketInput.value.trim()
+  let ticketId = id || ticketInput.value.trim()
   if (!ticketId) return
+  try { ticketId = JSON.parse(ticketId).ticket_id || ticketId } catch {}
   resultDiv.innerHTML = '<div class="spinner"></div>'
   try {
     const data = await API.admin('tickets', 'verify', { ticket_id: ticketId })

@@ -1,6 +1,6 @@
 // Booking flow — ALL data through API (Edge Functions)
 let selectedShow = null, selectedSeats = [], selectedSeatData = [], lockInterval = null
-let promoDiscount = 0, promoCodeId = null, razorpayOrder = null
+let promoDiscount = 0, promoCodeId = null, razorpayOrder = null, cachedShowPricing = null
 const eventId = new URLSearchParams(location.search).get('id')
 
 
@@ -40,7 +40,7 @@ async function loadShows() {
 }
 
 async function selectShow(id) {
-  selectedShow = id; selectedSeats = []; selectedSeatData = []; promoDiscount = 0; promoCodeId = null; razorpayOrder = null
+  selectedShow = id; selectedSeats = []; selectedSeatData = []; promoDiscount = 0; promoCodeId = null; razorpayOrder = null; cachedShowPricing = null
   document.getElementById('promoInput').value = ''; document.getElementById('promoMessage').textContent = ''
   document.getElementById('paymentSection').style.display = 'none'; document.getElementById('proceedBtn').style.display = 'block'; document.getElementById('proceedBtn').disabled = true
   if (lockInterval) { clearInterval(lockInterval); lockInterval = null }
@@ -54,6 +54,11 @@ async function loadSeatMap() {
   try {
     const { show, seats } = await API.getSeatMap(selectedShow)
     if (!show || !seats) { document.getElementById('seatMap').innerHTML = '<p style="color:var(--gray-500);">No seating layout.</p>'; return }
+    cachedShowPricing = {
+      price_premium: show.price_premium,
+      price_gold: show.price_gold,
+      price_silver: show.price_silver
+    }
     const html = Object.entries(seats).map(([row, rowSeats]) => `
       <div class="seat-row"><span class="seat-row-label">${row}</span>
         ${rowSeats.map(s => { const sel = selectedSeats.includes(s.id); return `<div class="seat ${sel?'selected':s.status} category-${s.category}" ${(s.status==='available'||sel)?`data-seat-id="${s.id}" data-seat-num="${s.seat_number}" data-seat-cat="${s.category}"`:''} title="${s.seat_number} (${s.category})">${s.seat_number.replace(row,'')}</div>` }).join('')}
@@ -85,8 +90,16 @@ async function updateSummary() {
   const s = document.getElementById('summaryContent'); const pb = document.getElementById('proceedBtn')
   if (!selectedSeats.length) { s.innerHTML = '<p style="color:var(--gray-500);">Select seats.</p>'; pb.disabled = true; return }
   try {
-    const { show } = await API.getSeatMap(selectedShow)
-    if (!show) throw new Error('Show data not available')
+    if (!cachedShowPricing) {
+      const { show } = await API.getSeatMap(selectedShow)
+      if (!show) throw new Error('Show data not available')
+      cachedShowPricing = {
+        price_premium: show.price_premium,
+        price_gold: show.price_gold,
+        price_silver: show.price_silver
+      }
+    }
+    const show = cachedShowPricing
     let sub = 0; const det = selectedSeatData.map(x => { const price = parseFloat(show['price_'+x.category]); const p = isNaN(price) ? 0 : price; sub+=p; return x.seat_number+' ('+x.category+' - ₹'+p+')' }).join(', ')
     const total = Math.max(0, sub - promoDiscount)
     s.innerHTML = `<p><strong>Seats:</strong> ${det}</p><p><strong>Subtotal:</strong> ₹${sub}</p>${promoDiscount>0?`<p><strong>Discount:</strong> -₹${promoDiscount}</p>`:''}<p style="font-size:1.3rem;font-weight:700;color:var(--primary);"><strong>Total:</strong> ₹${total}</p>`
@@ -128,6 +141,10 @@ async function completeFree(session) {
 }
 
 function initiatePayment() {
+  if (typeof Razorpay === 'undefined') {
+    alert('Razorpay payment gateway is not loaded. Please refresh the page or check your internet connection.')
+    return
+  }
   if (!razorpayOrder?.razorpay_order_id) return
   const sb = getSB()
   new Razorpay({

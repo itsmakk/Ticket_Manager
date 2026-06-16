@@ -1,9 +1,10 @@
 let lastResult = null, scanner = null
 
 async function verifyTicket(id) {
-  const input = id || document.getElementById('ticketId').value.trim()
+  let input = id || document.getElementById('ticketId').value.trim()
   const rDiv = document.getElementById('verifyResult')
   if (!input) return
+  try { input = JSON.parse(input).ticket_id || input } catch {}
   try {
     if (input.length === 36) {
       const t = await API.getTicket(input)

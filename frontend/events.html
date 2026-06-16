@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Events - CSM Auditorium</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="stylesheet" href="/css/style.css" />
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="/js/config.js"></script>
@@ -20,7 +21,8 @@
           <div class="header-subtitle">Naval Station Karanja</div>
         </div>
       </div>
-      <nav class="nav">
+      <button class="hamburger" id="hamburgerBtn" aria-label="Menu">☰</button>
+      <nav class="nav" id="mainNav">
         <a href="/">Home</a>
         <a href="/events.html">Events</a>
         <a href="/login.html" id="loginBtn">Login</a>
@@ -49,5 +51,22 @@
 
   <script src="/js/events.js"></script>
   <script src="/js/dark-mode.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const hamburger = document.getElementById('hamburgerBtn')
+      const nav = document.getElementById('mainNav')
+      if (!hamburger || !nav) return
+      hamburger.addEventListener('click', function() {
+        nav.classList.toggle('nav-open')
+        hamburger.textContent = nav.classList.contains('nav-open') ? '\u2715' : '\u2630'
+      })
+      document.addEventListener('click', function(e) {
+        if (!hamburger.contains(e.target) && !nav.contains(e.target)) {
+          nav.classList.remove('nav-open')
+          hamburger.textContent = '\u2630'
+        }
+      })
+    })
+  </script>
 </body>
 </html>

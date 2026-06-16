@@ -14,8 +14,8 @@
     const sb = getSB()
     if (!sb) throw new Error('Supabase client not initialized')
     const { data: { session } } = await sb.auth.getSession()
-    const headers = { 'Content-Type': 'application/json' }
-    if (session?.access_token) headers['Authorization'] = `Bearer ${session.access_token}`
+    const token = session?.access_token || CONFIG.SUPABASE_ANON_KEY
+    const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
 
     const res = await fetch(`${CONFIG.FUNCTIONS_URL}/${name}`, {
       method: 'POST', headers, body: JSON.stringify(payload),

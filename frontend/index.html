@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CSM Auditorium - Ticket Booking</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="stylesheet" href="/css/style.css" />
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="/js/config.js"></script>
@@ -16,11 +17,12 @@
       <div class="header-left">
         <span class="header-logo">🏛️</span>
         <div>
-          <div class="header-title">Chatrapati Shivaji Maharaj Auditorium</div>
+          <div class="header-title">Chhatrapati Shivaji Maharaj Auditorium</div>
           <div class="header-subtitle">Naval Station Karanja</div>
         </div>
       </div>
-      <nav class="nav">
+      <button class="hamburger" id="hamburgerBtn" aria-label="Menu">☰</button>
+      <nav class="nav" id="mainNav">
         <a href="/">Home</a>
         <a href="/events.html">Events</a>
         <a href="/login.html" id="loginBtn">Login</a>
@@ -33,35 +35,110 @@
     </div>
   </header>
 
-  <section class="hero">
+  <section class="hero-carousel" id="heroCarousel">
+    <div class="carousel-slides" id="carouselSlides">
+      <div class="carousel-slide" style="background-image: linear-gradient(135deg, #0a1628 0%, #1a3a5c 100%);">
+        <div class="carousel-overlay"></div>
+        <div class="carousel-content">
+          <h1>Chhatrapati Shivaji Maharaj Auditorium</h1>
+          <p class="carousel-tagline">"Serving the Nation with Pride"</p>
+          <p>Welcome to the official event & movie booking portal of Chhatrapati Shivaji Maharaj Auditorium, Naval Station Karanja.</p>
+          <p>Book tickets for movies, official events, cultural programs and special gatherings.</p>
+
+        </div>
+      </div>
+      <div class="carousel-slide" style="background-image: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);">
+        <div class="carousel-overlay"></div>
+        <div class="carousel-content">
+          <h1>Experience the Best</h1>
+          <p class="carousel-tagline">"Serving the Nation with Pride"</p>
+          <p>State-of-the-art auditorium with digital projection, premium seating, and world-class facilities.</p>
+
+        </div>
+      </div>
+      <div class="carousel-slide" style="background-image: linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%);">
+        <div class="carousel-overlay"></div>
+        <div class="carousel-content">
+          <h1>Cultural Programs & Events</h1>
+          <p class="carousel-tagline">"Serving the Nation with Pride"</p>
+          <p>Hosting cultural programs, ceremonial functions, and special gatherings for the Naval community.</p>
+
+        </div>
+      </div>
+    </div>
+    <div class="carousel-dots" id="carouselDots"></div>
+    <button class="carousel-btn carousel-prev" id="carouselPrev">‹</button>
+    <button class="carousel-btn carousel-next" id="carouselNext">›</button>
+  </section>
+
+  <section class="section" id="nowShowingSection">
     <div class="container">
-      <h1>Chatrapati Shivaji Maharaj Auditorium</h1>
-      <p>Naval Station Karanja - Book your tickets online for movies, cultural programs, and special events.</p>
-      <a href="/events.html" class="btn btn-secondary btn-lg">Browse Events</a>
+      <h2 class="section-title">🎬 Now Showing</h2>
+      <div class="scroll-cards" id="nowShowingGrid">
+        <div class="spinner"></div>
+      </div>
     </div>
   </section>
 
-  <section class="container" style="padding: 3rem 1rem;">
-    <h2 style="margin-bottom: 1.5rem;">Upcoming Events</h2>
-    <div class="grid grid-3" id="eventsGrid">
-      <div class="spinner"></div>
+  <section class="section section-alt" id="upcomingSection">
+    <div class="container">
+      <h2 class="section-title">📅 Upcoming Events</h2>
+      <div class="grid grid-3" id="upcomingGrid">
+        <div class="spinner"></div>
+      </div>
     </div>
   </section>
 
-  <section class="section-alt">
+  <section class="section">
     <div class="container">
-      <div class="grid grid-3" style="text-align: center;">
-        <div class="card">
-          <h3>Easy Booking</h3>
-          <p style="color:var(--gray-500);font-size:0.9rem;">Select your seats and pay online in minutes.</p>
+      <h2 class="section-title">📢 Announcements</h2>
+      <div class="announcements">
+        <div class="announcement-item">Auditorium bookings for July are now open.</div>
+        <div class="announcement-item">Visitors are requested to carry valid ID proof.</div>
+        <div class="announcement-item">Entry gates open 30 minutes before event start.</div>
+        <div class="announcement-item">Follow Naval Station security guidelines while visiting.</div>
+        <div class="announcement-item">Check event-specific instructions before booking.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-alt">
+    <div class="container">
+      <h2 class="section-title">📍 Auditorium Information</h2>
+      <div class="info-grid">
+        <div class="info-card">
+          <h3>Venue</h3>
+          <p>Chhatrapati Shivaji Maharaj Auditorium<br />Naval Station Karanja</p>
         </div>
-        <div class="card">
-          <h3>QR Tickets</h3>
-          <p style="color:var(--gray-500);font-size:0.9rem;">Get QR tickets emailed instantly after booking.</p>
+        <div class="info-card">
+          <h3>Facilities</h3>
+          <ul class="facilities-list">
+            <li>✓ Air Conditioned Auditorium</li>
+            <li>✓ Digital Projection System</li>
+            <li>✓ Reserved Seating</li>
+            <li>✓ Parking Facility</li>
+            <li>✓ Security Screening</li>
+          </ul>
         </div>
-        <div class="card">
-          <h3>24/7 Access</h3>
-          <p style="color:var(--gray-500);font-size:0.9rem;">View and download your tickets anytime.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title">📞 Contact & Support</h2>
+      <div class="contact-grid">
+        <div class="contact-card">
+          <h3>Booking Support</h3>
+          <p>📧 support@example.in</p>
+        </div>
+        <div class="contact-card">
+          <h3>Administration Office</h3>
+          <p>📞 +91-XXXXXXXXXX</p>
+          <p style="font-size:0.85rem;color:var(--text-secondary);margin-top:0.5rem;">Mon–Fri | 0900 hrs – 1700 hrs</p>
+        </div>
+        <div class="contact-card">
+          <p style="font-size:0.9rem;color:var(--text-secondary);">For technical assistance regarding bookings, please contact the support desk.</p>
         </div>
       </div>
     </div>
@@ -69,11 +146,70 @@
 
   <footer class="footer">
     <div class="container">
-      <p>&copy; 2026 CSM Auditorium, Naval Station Karanja. All rights reserved.</p>
+      <p>Designed By <a href="https://mk9.in" target="_blank" rel="noopener">AartiTechServices</a> © 2026 Chhatrapati Shivaji Maharaj Auditorium, Naval Station Karanja</p>
+      <p style="margin-top:0.5rem;font-size:0.8rem;opacity:0.7;">All Rights Reserved.</p>
     </div>
   </footer>
 
   <script src="/js/events.js"></script>
   <script src="/js/dark-mode.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const hamburger = document.getElementById('hamburgerBtn')
+      const nav = document.getElementById('mainNav')
+      if (!hamburger || !nav) return
+      hamburger.addEventListener('click', function() {
+        nav.classList.toggle('nav-open')
+        hamburger.textContent = nav.classList.contains('nav-open') ? '✕' : '☰'
+      })
+      document.addEventListener('click', function(e) {
+        if (!hamburger.contains(e.target) && !nav.contains(e.target)) {
+          nav.classList.remove('nav-open')
+          hamburger.textContent = '☰'
+        }
+      })
+    })
+  </script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const slides = document.querySelectorAll('.carousel-slide')
+      const dotsContainer = document.getElementById('carouselDots')
+      const prevBtn = document.getElementById('carouselPrev')
+      const nextBtn = document.getElementById('carouselNext')
+      let current = 0
+      let interval
+
+      slides.forEach((_, i) => {
+        const dot = document.createElement('button')
+        dot.className = 'carousel-dot' + (i === 0 ? ' active' : '')
+        dot.addEventListener('click', () => goTo(i))
+        dotsContainer.appendChild(dot)
+      })
+
+      function goTo(index) {
+        slides.forEach(s => s.classList.remove('active'))
+        document.querySelectorAll('.carousel-dot').forEach(d => d.classList.remove('active'))
+        current = (index + slides.length) % slides.length
+        slides[current].classList.add('active')
+        document.querySelectorAll('.carousel-dot')[current].classList.add('active')
+      }
+
+      function next() { goTo(current + 1) }
+      function prev() { goTo(current - 1) }
+
+      nextBtn.addEventListener('click', next)
+      prevBtn.addEventListener('click', prev)
+
+      function startAuto() { interval = setInterval(next, 5000) }
+      function stopAuto() { clearInterval(interval) }
+
+      const carousel = document.getElementById('heroCarousel')
+      carousel.addEventListener('mouseenter', stopAuto)
+      carousel.addEventListener('mouseleave', startAuto)
+
+      goTo(0)
+      startAuto()
+    })
+  </script>
 </body>
 </html>

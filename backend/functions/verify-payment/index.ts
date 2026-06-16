@@ -82,7 +82,7 @@ Deno.serve(async (req) => {
 
     const { data: show, error: showError } = await supabase
       .from('shows')
-      .select('id, event_id, status, show_date, start_time, booking_cutoff_minutes, events!inner(status, title)')
+      .select('id, event_id, status, show_date, start_time, booking_cutoff_minutes, price_premium, price_gold, price_silver, events!inner(status, title)')
       .eq('id', effectiveShowId)
       .eq('event_id', effectiveEventId)
       .single()
@@ -248,12 +248,13 @@ Deno.serve(async (req) => {
       details: auditDetails,
     })
     try {
-      const { data: userProfile } = await supabase.from('profiles').select('email').eq('id', userId).maybeSingle()
-      if (userProfile?.email) {
+      const { data: userProfile } = await supabase.from('profiles').select('email, full_name').eq('id', userId).maybeSingle()
+      const recipientEmail = customer_email || userProfile?.email
+      if (recipientEmail) {
         const qrDataUrls = await Promise.all(tickets.map(t =>
           generateQRDataUrl(JSON.stringify({ ticket_id: t.ticket_id, token: t.verification_token.slice(0, 20) }))
         ))
-        await sendEmail(userProfile.email, 'Booking Confirmed - CSM Auditorium', buildConfirmationHtml({
+        await sendEmail(recipientEmail, 'Booking Confirmed - CSM Auditorium', buildConfirmationHtml({
           eventTitle: (show as any).events?.title || 'Event',
           showDate: (show as any).show_date,
           showTime: (show as any).start_time,
@@ -266,7 +267,7 @@ Deno.serve(async (req) => {
           })),
           totalAmount: String(effectiveAmount),
           bookingId,
-          customerName: customer_name,
+          customerName: customer_name || userProfile?.full_name || 'Customer',
         }))
       }
     } catch (e) { console.error('Confirmation email failed:', e) }

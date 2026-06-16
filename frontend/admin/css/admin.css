@@ -39,10 +39,7 @@
   font-size: 0.8rem;
   font-weight: 600;
 }
-.role-admin { background: #dbeafe; color: #1e40af; }
-.role-scanner { background: #d1fae5; color: #065f46; }
-.role-counter { background: #fef3c7; color: #92400e; }
-.role-user { background: #e5e7eb; color: #374151; }
+
 .role-select { padding: 0.25rem; border-radius: var(--radius); border: 1px solid var(--border-strong); background: var(--surface); color: var(--text); }
 
 .dash-header {

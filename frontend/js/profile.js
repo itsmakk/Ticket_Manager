@@ -99,12 +99,12 @@ function showQR(tid, tok, ev, dt, tm, seats) {
   const m = document.createElement('div'); m.className='modal-overlay'
   m.innerHTML = `<div class="modal" style="text-align:center;"><div class="modal-header"><h2>Your Ticket</h2><button class="modal-close" onclick="this.closest('.modal-overlay').remove()">&times;</button></div>
     <div style="padding:1rem 0;"><p><strong>${ev}</strong></p><p style="color:var(--gray-500);font-size:0.9rem;">${dt} | ${tm}</p><p style="color:var(--gray-500);font-size:0.9rem;">${seats}</p>
-    <div id="qr-${tid}" style="margin:1rem auto;width:200px;height:200px;"></div><p style="font-family:monospace;font-size:0.8rem;color:var(--gray-500);">${tid}</p>
+    <canvas id="qr-${tid}" style="margin:1rem auto;"></canvas><p style="font-family:monospace;font-size:0.8rem;color:var(--gray-500);">${tid}</p>
     <button class="btn btn-primary" onclick="dl('${tid}')">Download</button></div></div>`
   document.body.appendChild(m)
   QRCode.toCanvas(document.getElementById('qr-'+tid), JSON.stringify(d), {width:200,margin:2})
 }
-function dl(tid) { const c=document.querySelector('#qr-'+tid+' canvas'); if(!c)return; const a=document.createElement('a'); a.download='ticket-'+tid+'.png'; a.href=c.toDataURL('image/png'); a.click() }
+function dl(tid) { const c=document.getElementById('qr-'+tid); if(!c)return; const a=document.createElement('a'); a.download='ticket-'+tid+'.png'; a.href=c.toDataURL('image/png'); a.click() }
 
 document.addEventListener('DOMContentLoaded', () => {
   loadProfile()
