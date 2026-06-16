@@ -1,18 +1,96 @@
-// Profile — ALL data through API
+let profile = null
+
+async function loadProfile() {
+  try {
+    profile = await API.getProfile()
+    document.getElementById('dispName').textContent = profile.full_name || '-'
+    document.getElementById('dispEmail').textContent = profile.email || '-'
+    document.getElementById('dispMobile').textContent = profile.mobile || '-'
+    document.getElementById('dispRole').textContent = profile.role || '-'
+    document.getElementById('editName').value = profile.full_name || ''
+    document.getElementById('editEmail').value = profile.email || ''
+    document.getElementById('editMobile').value = profile.mobile || ''
+  } catch (err) {
+    document.getElementById('profileAlert').innerHTML = `<div class="alert alert-danger">${err.message}</div>`
+  }
+}
+
+function showEditForm() {
+  document.getElementById('profileDisplay').style.display = 'none'
+  document.getElementById('profileEditForm').style.display = 'block'
+}
+
+function cancelEdit() {
+  document.getElementById('profileDisplay').style.display = 'block'
+  document.getElementById('profileEditForm').style.display = 'none'
+  document.getElementById('editName').value = profile.full_name || ''
+  document.getElementById('editEmail').value = profile.email || ''
+  document.getElementById('editMobile').value = profile.mobile || ''
+}
+
+document.getElementById('profileEditForm').addEventListener('submit', async (e) => {
+  e.preventDefault()
+  const name = document.getElementById('editName').value.trim()
+  const email = document.getElementById('editEmail').value.trim()
+  const mobile = document.getElementById('editMobile').value.trim()
+  const alertDiv = document.getElementById('profileAlert')
+  try {
+    await API.updateProfile({
+      full_name: name,
+      email: email || undefined,
+      mobile: mobile || undefined,
+    })
+    const sb = getSB()
+    const authUpdates = {}
+    if (name && name !== profile.full_name) authUpdates.data = { ...authUpdates.data, full_name: name }
+    if (mobile && mobile !== profile.mobile) authUpdates.data = { ...authUpdates.data, mobile }
+    if (email && email !== profile.email) authUpdates.email = email
+    if (Object.keys(authUpdates).length) {
+      const { data: authData, error } = await sb.auth.updateUser(authUpdates)
+      if (error) throw error
+      if (authData?.user) localStorage.setItem('sb-user', JSON.stringify(authData.user))
+    }
+    alertDiv.innerHTML = '<div class="alert alert-success">Profile updated successfully!</div>'
+    cancelEdit()
+    await loadProfile()
+  } catch (err) {
+    alertDiv.innerHTML = `<div class="alert alert-danger">${err.message}</div>`
+  }
+})
+
+async function changePassword() {
+  const input = document.getElementById('newPassword')
+  const pr = document.getElementById('passwordResult')
+  const pw = input.value.trim()
+  if (pw.length < 6) { pr.innerHTML = '<p style="color:var(--danger);font-size:0.9rem;">Password must be at least 6 characters.</p>'; return }
+  try {
+    const sb = getSB()
+    const { error } = await sb.auth.updateUser({ password: pw })
+    if (error) throw error
+    input.value = ''
+    pr.innerHTML = '<p style="color:var(--success);font-size:0.9rem;">Password updated successfully!</p>'
+  } catch (err) {
+    pr.innerHTML = `<p style="color:var(--danger);font-size:0.9rem;">${err.message}</p>`
+  }
+}
+
 async function loadBookings() {
   const container = document.getElementById('bookingsList')
   try {
     const bookings = await API.getBookings()
     if (!bookings?.length) {
-      container.innerHTML = '<div class="card" style="text-align:center;padding:3rem;"><h3>No Bookings</h3><p style="color:var(--gray-500);"><a href="/events.html" class="btn btn-primary">Browse Events</a></p></div>'; return
+      container.innerHTML = '<div style="text-align:center;padding:2rem 0;"><p style="color:var(--gray-500);margin-bottom:1rem;">No bookings yet.</p><a href="/events.html" class="btn btn-primary">Browse Events</a></div>'; return
     }
-    container.innerHTML = bookings.map(b => `<div class="card"><div style="display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:1rem;">
-      <div><h3>${b.events?.title||'Event'}</h3><p style="color:var(--gray-500);font-size:0.9rem;">${b.shows?.show_date} ${b.shows?.start_time}</p>
-        <p style="font-size:0.9rem;"><strong>Seats:</strong> ${(b.booking_seats||[]).map(s=>s.seat_number).join(', ')||'-'}</p>
-        <p style="font-size:0.9rem;"><strong>Amount:</strong> ₹${b.total_amount}</p>
-        <p><span class="badge badge-${b.status==='Confirmed'?'success':'danger'}">${b.status}</span> <span class="badge badge-primary">${b.booking_source}</span></p></div>
-      <div style="text-align:right;">${(b.tickets||[]).map(t => `<div style="margin-bottom:0.5rem;"><button class="btn btn-sm btn-outline" onclick="showQR('${t.ticket_id}','${t.verification_token}','${b.events?.title}','${b.shows?.show_date}','${b.shows?.start_time}','${(b.booking_seats||[]).map(s=>s.seat_number).join(',')}')">View Ticket</button><span class="badge badge-${t.status==='Valid'?'success':'warning'}">${t.status}</span></div>`).join('')||'<span style="color:var(--gray-500);font-size:0.85rem;">No ticket</span>'}</div>
-    </div></div>`).join('')
+    container.innerHTML = bookings.map(b => `<div style="padding:0.75rem 0;border-bottom:1px solid var(--gray-200);">
+      <div style="display:flex;justify-content:space-between;align-items:start;gap:0.5rem;">
+        <div>
+          <strong>${b.events?.title||'Event'}</strong>
+          <p style="font-size:0.85rem;color:var(--gray-500);">${b.shows?.show_date} ${b.shows?.start_time}</p>
+          <p style="font-size:0.85rem;">₹${b.total_amount} <span class="badge badge-${b.status==='Confirmed'?'success':'danger'}">${b.status}</span></p>
+        </div>
+        <div style="text-align:right;">${(b.tickets||[]).map(t => `<button class="btn btn-sm btn-outline" style="margin-bottom:0.25rem;" onclick="showQR('${t.ticket_id}','${t.verification_token}','${b.events?.title}','${b.shows?.show_date}','${b.shows?.start_time}','${t.seat?.seat_number||'-'}')">${t.seat ? 'Ticket '+t.seat.seat_number : 'View'}</button>`).join('')||'<span style="font-size:0.85rem;color:var(--gray-500);">No tickets</span>'}</div>
+      </div>
+    </div>`).join('')
   } catch (err) { container.innerHTML = `<div class="alert alert-danger">${err.message}</div>` }
 }
 
@@ -28,4 +106,7 @@ function showQR(tid, tok, ev, dt, tm, seats) {
 }
 function dl(tid) { const c=document.querySelector('#qr-'+tid+' canvas'); if(!c)return; const a=document.createElement('a'); a.download='ticket-'+tid+'.png'; a.href=c.toDataURL('image/png'); a.click() }
 
-document.addEventListener('DOMContentLoaded', loadBookings)
+document.addEventListener('DOMContentLoaded', () => {
+  loadProfile()
+  loadBookings()
+})

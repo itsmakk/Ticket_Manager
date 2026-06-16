@@ -13,6 +13,14 @@ Deno.serve(async (req) => {
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
     if (error) throw error
+    for (const booking of (bookings || [])) {
+      for (const ticket of (booking.tickets || [])) {
+        if (ticket.show_seat_id) {
+          const { data: s } = await supabase.from('show_seats').select('auditorium_seats!inner(seat_number, row_label, category)').eq('id', ticket.show_seat_id).maybeSingle()
+          ticket.seat = s?.auditorium_seats || null
+        }
+      }
+    }
     return corsResponse(bookings)
   } catch (err) {
     return corsResponse({ error: err.message }, 400)

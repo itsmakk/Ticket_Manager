@@ -13,13 +13,19 @@
 <body>
   <header class="header">
     <div class="container">
-      <a href="/" class="header-brand">CSM Auditorium</a>
+      <div class="header-left">
+        <span class="header-logo">🏛️</span>
+        <div>
+          <div class="header-title">Chatrapati Shivaji Maharaj Auditorium</div>
+          <div class="header-subtitle">Naval Station Karanja</div>
+        </div>
+      </div>
       <nav class="nav">
         <a href="/">Home</a>
         <a href="/events.html">Events</a>
         <a href="/login.html" id="loginBtn">Login</a>
         <a href="/register.html" id="registerBtn">Register</a>
-        <a href="/profile.html" id="profileLink" style="display:none">My Bookings</a>
+        <a href="/profile.html" id="profileLink" style="display:none">My Profile</a>
         <a href="/profile.html" id="userName" style="display:none"></a>
         <a href="#" id="logoutBtn" style="display:none">Logout</a>
       </nav>
@@ -56,11 +62,12 @@
     </div>
   </div>
 
-  <footer style="background: var(--gray-800); color: white; padding: 2rem 0; text-align: center; margin-top: 2rem;">
+  <footer class="footer">
     <div class="container">
       <p>&copy; 2026 CSM Auditorium, Naval Station Karanja. All rights reserved.</p>
     </div>
   </footer>
   <script src="/js/auth.js"></script>
+  <script src="/js/dark-mode.js"></script>
 </body>
 </html>

@@ -12,15 +12,28 @@
   <script src="/js/auth.js"></script>
 </head>
 <body>
+  <header class="header">
+    <div class="container">
+      <div class="header-left">
+        <span class="header-logo">🏛️</span>
+        <div>
+          <div class="header-title">Chatrapati Shivaji Maharaj Auditorium</div>
+          <div class="header-subtitle">Naval Station Karanja</div>
+        </div>
+      </div>
+      <nav class="nav">
+        <a href="/">Home</a>
+        <a href="/events.html">Events</a>
+        <a href="/admin/index.html">Admin Panel</a>
+        <a href="/profile.html">My Profile</a>
+        <a href="#" id="adminLogout">Logout</a>
+      </nav>
+    </div>
+  </header>
   <div class="admin-layout">
         <aside class="admin-sidebar">
       <div class="brand">CSM Admin</div>
-      <div id="adminUserInfo" class="admin-user-info">
-        <div id="adminUserName" class="admin-user-name"></div>
-        <div id="adminUserEmail" class="admin-user-email"></div>
-        <div id="adminUserMobile" class="admin-user-mobile"></div>
-        <div id="adminUserRole" class="admin-user-role"></div>
-      </div>
+
       <a href="/admin/index.html">Dashboard</a>
       <a href="/admin/events.html">Events</a>
       <a href="/admin/shows.html">Shows</a>
@@ -34,22 +47,26 @@
       <a href="/admin/audit.html">Audit Log</a>
       <a href="/admin/users.html">Users</a>
       <hr style="border-color:rgba(255,255,255,0.1);margin:1rem 0;" />
-      <a href="/" style="color:var(--secondary);">View Site</a>
-      <a href="#" id="adminLogout">Logout</a>
+
     </aside>
     <main class="admin-main">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+      <header class="admin-header">
         <h1>Promo Codes</h1>
         <button class="btn btn-primary" onclick="showPromoModal()">+ New Promo Code</button>
-      </div>
-      <div class="card">
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Code</th><th>Discount</th><th>Max Discount</th><th>Min Order</th><th>Max Uses</th><th>Used</th><th>Status</th><th>Actions</th></tr></thead>
-            <tbody id="promosBody"></tbody>
-          </table>
+      </header>
+      <div class="admin-content">
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Code</th><th>Discount</th><th>Max Discount</th><th>Min Order</th><th>Max Uses</th><th>Used</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="promosBody"></tbody>
+            </table>
+          </div>
         </div>
       </div>
+      <footer class="admin-footer">
+        <p>&copy; 2026 Chatrapati Shivaji Maharaj Auditorium. All rights reserved.</p>
+      </footer>
     </main>
   </div>
 
@@ -98,5 +115,6 @@
     </div>
   </div>
   <script src="/admin/js/promocodes.js"></script>
+  <script src="/js/dark-mode.js"></script>
 </body>
 </html>

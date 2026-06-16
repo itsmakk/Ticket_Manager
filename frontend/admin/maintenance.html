@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maintenance - CSM Admin</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/admin/css/admin.css" />
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="/js/config.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="header-left">
+        <span class="header-logo">🏛️</span>
+        <div>
+          <div class="header-title">Chatrapati Shivaji Maharaj Auditorium</div>
+          <div class="header-subtitle">Naval Station Karanja</div>
+        </div>
+      </div>
+      <nav class="nav">
+        <a href="/">Home</a>
+        <a href="/events.html">Events</a>
+        <a href="/admin/index.html">Admin Panel</a>
+        <a href="/profile.html">My Profile</a>
+        <a href="#" id="adminLogout">Logout</a>
+      </nav>
+    </div>
+  </header>
+  <div class="admin-layout">
+        <aside class="admin-sidebar">
+      <div class="brand">CSM Admin</div>
+
+      <a href="/admin/index.html">Dashboard</a>
+      <a href="/admin/events.html">Events</a>
+      <a href="/admin/shows.html">Shows</a>
+      <a href="/admin/seats.html">Seating</a>
+      <a href="/admin/bookings.html">Bookings</a>
+      <a href="/admin/counter.html">Counter Booking</a>
+      <a href="/events.html" style="color:var(--secondary);">Book Tickets</a>
+      <a href="/admin/promocodes.html">Promo Codes</a>
+      <a href="/admin/reports.html">Reports</a>
+      <a href="/admin/verify.html">Verify Tickets</a>
+      <a href="/admin/audit.html">Audit Log</a>
+      <a href="/admin/users.html">Users</a>
+      <a href="/admin/maintenance.html" style="color:var(--warning);">Maintenance</a>
+      <hr style="border-color:rgba(255,255,255,0.1);margin:1rem 0;" />
+
+    </aside>
+    <main class="admin-main">
+      <header class="admin-header">
+        <h1>Maintenance Mode</h1>
+      </header>
+      <div class="admin-content">
+        <div class="card" style="max-width:500px;">
+          <div id="maintenanceStatus" style="margin-bottom:1.5rem;padding:1rem;border-radius:var(--radius);text-align:center;font-size:1.2rem;font-weight:600;"></div>
+          <div class="form-group">
+            <label class="form-label">Custom Message (optional)</label>
+            <textarea class="form-input" id="maintenanceMessage" rows="3" placeholder="System is under maintenance. Please check back later."></textarea>
+          </div>
+          <div style="display:flex;gap:0.5rem;">
+            <button class="btn btn-danger" id="enableMaintenanceBtn" onclick="toggleMaintenance(true)" style="flex:1;">Enable Maintenance</button>
+            <button class="btn btn-success" id="disableMaintenanceBtn" onclick="toggleMaintenance(false)" style="flex:1;">Disable Maintenance</button>
+          </div>
+          <div id="maintenanceResult" style="margin-top:1rem;"></div>
+        </div>
+      </div>
+      <footer class="admin-footer">
+        <p>&copy; 2026 Chatrapati Shivaji Maharaj Auditorium. All rights reserved.</p>
+      </footer>
+    </main>
+  </div>
+  <script>
+    async function loadStatus() {
+      const data = await API.admin('maintenance', 'get')
+      const statusDiv = document.getElementById('maintenanceStatus')
+      const msgInput = document.getElementById('maintenanceMessage')
+      if (data?.enabled) {
+        statusDiv.innerHTML = '&#9888; Maintenance Mode is <strong>ENABLED</strong>'
+        statusDiv.style.background = '#fef2f2'
+        statusDiv.style.color = 'var(--danger)'
+        statusDiv.style.border = '2px solid var(--danger)'
+        document.getElementById('enableMaintenanceBtn').disabled = true
+        document.getElementById('disableMaintenanceBtn').disabled = false
+        if (data.message) msgInput.value = data.message
+      } else {
+        statusDiv.innerHTML = '&#10003; System is <strong>LIVE</strong>'
+        statusDiv.style.background = '#f0fdf4'
+        statusDiv.style.color = 'var(--success)'
+        statusDiv.style.border = '2px solid var(--success)'
+        document.getElementById('enableMaintenanceBtn').disabled = false
+        document.getElementById('disableMaintenanceBtn').disabled = true
+      }
+    }
+    async function toggleMaintenance(enabled) {
+      const msg = document.getElementById('maintenanceMessage').value.trim()
+      const resultDiv = document.getElementById('maintenanceResult')
+      try {
+        await API.admin('maintenance', 'update', { enabled, message: msg || undefined })
+        resultDiv.innerHTML = `<p style="color:var(--success);">Maintenance mode ${enabled ? 'enabled' : 'disabled'}.</p>`
+        loadStatus()
+      } catch (err) {
+        resultDiv.innerHTML = `<p style="color:var(--danger);">${err.message}</p>`
+      }
+    }
+    document.addEventListener('DOMContentLoaded', loadStatus)
+  </script>
+  <script src="/js/dark-mode.js"></script>
+</body>
+</html>

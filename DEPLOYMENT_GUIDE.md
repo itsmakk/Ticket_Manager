@@ -320,9 +320,20 @@ Run via Supabase CLI (not a frontend env var):
 supabase secrets set RESEND_API_KEY=re_...
 ```
 
-### 9.3 Email is Currently Planned for Phase 14
+### 9.3 Email Integration (Phase 14 - Complete)
 
-The booking confirmation email sending via Resend requires a server-side function (Cloudflare Functions or Supabase Edge Functions). This feature is planned for Phase 14.
+Booking confirmation and cancellation emails are now integrated:
+
+- **verify-payment** sends confirmation email with per-ticket QR codes embedded as data URLs
+- **cancel-booking** sends cancellation notice with refund status
+- Emails are fire-and-forget (non-blocking); failures are logged but never affect booking/cancellation success
+- QR codes generated server-side using `qrcode` library, matching the same format as frontend (`{"ticket_id":"...","token":"..."}`)
+
+**Optional: Custom From Address**
+```bash
+supabase secrets set RESEND_FROM="CSM Auditorium <noreply@yourdomain.com>"
+```
+If not set, defaults to the Resend sandbox address `onboarding@resend.dev`.
 
 ---
 

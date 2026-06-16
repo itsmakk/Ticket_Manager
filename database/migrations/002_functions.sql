@@ -11,11 +11,13 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Get available seats for a show
+-- NOTE: BUG-024 was here — 'row_number' column doesn't exist, table has 'row_label'.
+-- Fixed in 006_fix_get_available_seats.sql
 CREATE OR REPLACE FUNCTION get_available_seats(show_id UUID)
-RETURNS TABLE (seat_id UUID, seat_number TEXT, row_number TEXT, category TEXT) AS $$
+RETURNS TABLE (seat_id UUID, seat_number TEXT, row_label TEXT, category TEXT) AS $$
 BEGIN
   RETURN QUERY
-  SELECT s.id, s.seat_number, s.row_number, s.category
+  SELECT s.id, s.seat_number, s.row_label, s.category
   FROM seats s
   WHERE s.status = 'available'
     AND s.id NOT IN (
@@ -29,6 +31,6 @@ BEGIN
       WHERE sl.show_id = get_available_seats.show_id
         AND sl.expires_at > NOW()
     )
-  ORDER BY s.row_number, s.seat_number;
+  ORDER BY s.row_label, s.seat_number;
 END;
 $$ LANGUAGE plpgsql STABLE;

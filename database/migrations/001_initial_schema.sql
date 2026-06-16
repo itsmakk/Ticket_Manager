@@ -285,10 +285,12 @@ CREATE POLICY "Admins can manage tickets"
   USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'));
 
 -- Promo codes: public can read active for validation
+-- NOTE: BUG-023 was here — 'status' column doesn't exist, table has 'is_active'.
+-- Fixed in 005_fix_promo_rls_policy.sql
 DROP POLICY IF EXISTS "Public can read active promo codes" ON promo_codes;
 CREATE POLICY "Public can read active promo codes"
   ON promo_codes FOR SELECT
-  USING (status = 'Active');
+  USING (is_active = true);
 
 DROP POLICY IF EXISTS "Admins can manage promo codes" ON promo_codes;
 CREATE POLICY "Admins can manage promo codes"
@@ -344,7 +346,9 @@ BEGIN
   WHERE booking_id = cancel_booking.booking_id;
 
   -- Audit log
-  INSERT INTO audit_logs (user_id, action, module, record_id, details)
+  -- NOTE: BUG-022 was here — 'module, record_id' columns don't exist.
+  -- Fixed version in 004_fix_cancel_booking_columns.sql
+  INSERT INTO audit_logs (user_id, action, entity_type, entity_id, details)
   VALUES (auth.uid(), 'Booking Cancelled', 'Booking', booking_id::TEXT, 'Booking cancelled by admin');
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

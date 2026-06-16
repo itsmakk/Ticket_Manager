@@ -9,24 +9,29 @@ async function loadDashboard() {
 }
 document.addEventListener('DOMContentLoaded', async () => {
   const sb = window.__apiSupabase
-  if (sb) {
-    const { data: { session } } = await sb.auth.getSession()
-    if (!session) { window.location.href = '/login.html?redirect=/admin/index.html'; return }
-    const du = document.getElementById('dashUserName')
-    if (du) {
-      const u = localStorage.getItem('sb-user')
-      if (u) {
-        const user = JSON.parse(u)
-        const meta = user?.user_metadata || {}
-        du.textContent = meta?.full_name || user?.email?.split('@')[0] || 'Administrator'
+  if (!sb) return
+  const { data: { session } } = await sb.auth.getSession()
+  if (!session) { window.location.href = '/login.html?redirect=/admin/index.html'; return }
+  try {
+    const profile = await API.getProfile()
+    if (!profile || profile.role !== 'admin') {
+      const roleHome = {
+        counter: '/admin/counter.html',
+        scanner: '/scanner/index.html',
       }
+      window.location.href = roleHome[profile?.role] || '/'
+      return
     }
-    document.getElementById('adminLogout')?.addEventListener('click', async (e) => {
-      e.preventDefault()
-      await sb.auth.signOut()
-      localStorage.removeItem('sb-token'); localStorage.removeItem('sb-user')
-      window.location.href = '/'
-    })
+  } catch {
+    window.location.href = '/login.html?redirect=/admin/index.html'
+    return
   }
+
+  document.getElementById('adminLogout')?.addEventListener('click', async (e) => {
+    e.preventDefault()
+    await sb.auth.signOut()
+    localStorage.removeItem('sb-token'); localStorage.removeItem('sb-user')
+    window.location.href = '/'
+  })
   loadDashboard()
 })

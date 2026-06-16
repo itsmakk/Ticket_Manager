@@ -1,4 +1,8 @@
 import { getSupabase, getUser, corsResponse, handleCors } from '../_shared/supabase.ts'
+import { flattenShowSeat } from '../_shared/show-seats.ts'
+import { buildAuditoriumLayout } from '../_shared/seat-layout.ts'
+import { isPastBookingCutoff } from '../_shared/booking-cutoff.ts'
+import { cancelBooking } from '../_shared/cancel-booking.ts'
 
 Deno.serve(async (req) => {
   const cors = handleCors(req)
@@ -12,10 +16,12 @@ Deno.serve(async (req) => {
     const { data: profile } = await supabase.from('profiles').select('role').eq('id', userId).single()
     if (!profile) throw new Error('Unauthorized')
     const isAdmin = profile.role === 'admin'
+    const isCounter = profile.role === 'counter'
     const isScanner = profile.role === 'scanner'
-    const isStaff = isAdmin || isScanner
 
-    if (!isAdmin && resource !== 'tickets') throw new Error('Unauthorized: admin only')
+    const scannerAllowed = isScanner && resource === 'tickets' && action === 'verify'
+    const counterAllowed = isCounter && resource === 'counter' && action === 'shows'
+    if (!isAdmin && !scannerAllowed && !counterAllowed) throw new Error('Unauthorized')
 
     switch (resource) {
       // Dashboard
@@ -33,42 +39,58 @@ Deno.serve(async (req) => {
       case 'events': {
         if (action === 'list') { const { data } = await supabase.from('events').select('*').order('created_at', { ascending: false }); return corsResponse(data) }
         if (action === 'get') { const { data } = await supabase.from('events').select('*').eq('id', params.id).single(); return corsResponse(data) }
-        if (action === 'create') { const { data } = await supabase.from('events').insert(params).select().single(); await supabase.from('audit_logs').insert({ user_id: userId, action: 'EVENT_CREATED', entity_type: 'event', entity_id: data?.id }); return corsResponse(data) }
-        if (action === 'update') { const { data } = await supabase.from('events').update(params).eq('id', params.id).select().single(); await supabase.from('audit_logs').insert({ user_id: userId, action: 'EVENT_UPDATED', entity_type: 'event', entity_id: params.id }); return corsResponse(data) }
+        if (action === 'create') { const { id, ...createParams } = params; const { data } = await supabase.from('events').insert(createParams).select().single(); await supabase.from('audit_logs').insert({ user_id: userId, action: 'EVENT_CREATED', entity_type: 'event', entity_id: data?.id }); return corsResponse(data) }
+        if (action === 'update') { const { id, ...updateParams } = params; const { data } = await supabase.from('events').update(updateParams).eq('id', params.id).select().single(); await supabase.from('audit_logs').insert({ user_id: userId, action: 'EVENT_UPDATED', entity_type: 'event', entity_id: params.id }); return corsResponse(data) }
         if (action === 'delete') { await supabase.from('events').delete().eq('id', params.id); await supabase.from('shows').delete().eq('event_id', params.id); await supabase.from('audit_logs').insert({ user_id: userId, action: 'EVENT_DELETED', entity_type: 'event', entity_id: params.id }); return corsResponse({ success: true }) }
         break
       }
 
       // Shows
       case 'shows': {
-        if (action === 'create') { const { data } = await supabase.from('shows').insert(params).select().single(); await supabase.from('audit_logs').insert({ user_id: userId, action: 'SHOW_CREATED', entity_type: 'show', entity_id: data?.id }); return corsResponse(data) }
-        if (action === 'update') { const { data } = await supabase.from('shows').update(params).eq('id', params.id).select().single(); await supabase.from('audit_logs').insert({ user_id: userId, action: 'SHOW_UPDATED', entity_type: 'show', entity_id: params.id }); return corsResponse(data) }
-        if (action === 'delete') { await supabase.from('shows').delete().eq('id', params.id); await supabase.from('seats').delete().eq('show_id', params.id); await supabase.from('audit_logs').insert({ user_id: userId, action: 'SHOW_DELETED', entity_type: 'show', entity_id: params.id }); return corsResponse({ success: true }) }
+        if (action === 'create') {
+          const { id, ...createParams } = params
+          const { data, error } = await supabase.from('shows').insert(createParams).select().single()
+          if (error) throw error
+          await supabase.from('audit_logs').insert({ user_id: userId, action: 'SHOW_CREATED', entity_type: 'show', entity_id: data.id })
+          return corsResponse(data)
+        }
+        if (action === 'update') { const { id, ...updateParams } = params; const { data } = await supabase.from('shows').update(updateParams).eq('id', params.id).select().single(); await supabase.from('audit_logs').insert({ user_id: userId, action: 'SHOW_UPDATED', entity_type: 'show', entity_id: params.id }); return corsResponse(data) }
+        if (action === 'delete') { await supabase.from('shows').delete().eq('id', params.id); await supabase.from('audit_logs').insert({ user_id: userId, action: 'SHOW_DELETED', entity_type: 'show', entity_id: params.id }); return corsResponse({ success: true }) }
         break
       }
 
       // Seats
       case 'seats': {
-        if (action === 'list') { const { data } = await supabase.from('seats').select('*').eq('show_id', params.show_id).order('seat_number'); return corsResponse(data) }
-        if (action === 'generate') {
-          const { data: show } = await supabase.from('shows').select('*').eq('id', params.show_id).single()
-          if (!show) throw new Error('Show not found')
-          const rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
-          const seatsPerRow = 20
-          const seats = []
-          for (const row of rows) {
-            for (let i = 1; i <= seatsPerRow; i++) {
-              const num = `${row}${String(i).padStart(2, '0')}`
-              let category = 'silver'
-              if (row <= 'D') category = 'premium'
-              else if (row <= 'G') category = 'gold'
-              seats.push({ show_id: params.show_id, seat_number: num, category, row_label: row, status: 'available' })
-            }
-          }
-          await supabase.from('seats').delete().eq('show_id', params.show_id)
-          const { error } = await supabase.from('seats').insert(seats)
+        if (action === 'layout') {
+          const { data, error } = await supabase
+            .from('auditorium_seats')
+            .select('*')
+            .order('row_label')
+            .order('seat_number')
           if (error) throw error
-          return corsResponse({ success: true, count: seats.length })
+          return corsResponse(data)
+        }
+        if (action === 'list') {
+          const { data, error } = await supabase
+            .from('show_seats')
+            .select('id, show_id, auditorium_seat_id, status, locked_at, booking_id, auditorium_seats!inner(seat_number, row_label, category, is_active)')
+            .eq('show_id', params.show_id)
+          if (error) throw error
+          return corsResponse((data || []).map(flattenShowSeat))
+        }
+        if (action === 'generate') {
+          const layout = buildAuditoriumLayout(params.rows, params.seats_per_row, params.categories)
+
+          const { data: savedCount, error: layoutError } = await supabase
+            .rpc('replace_auditorium_layout', { p_layout: layout })
+          if (layoutError) throw layoutError
+          await supabase.from('audit_logs').insert({
+            user_id: userId,
+            action: 'AUDITORIUM_LAYOUT_REPLACED',
+            entity_type: 'auditorium',
+            details: `${layout.length} seats across ${new Set(layout.map(seat => seat.row_label)).size} rows`,
+          })
+          return corsResponse({ success: true, count: savedCount })
         }
         break
       }
@@ -76,21 +98,51 @@ Deno.serve(async (req) => {
       // Bookings
       case 'bookings': {
         if (action === 'list') { const { data } = await supabase.from('bookings').select('*, events:event_id(title), shows:show_id(show_date, start_time), booking_seats(*)').order('created_at', { ascending: false }).limit(100); return corsResponse(data) }
-        if (action === 'cancel') { await supabase.from('bookings').update({ status: 'Cancelled' }).eq('id', params.id); await supabase.from('seats').update({ status: 'available', booking_id: null }).eq('booking_id', params.id); await supabase.from('tickets').update({ status: 'Cancelled' }).eq('booking_id', params.id); return corsResponse({ success: true }) }
+        if (action === 'cancel') { const r = await cancelBooking(supabase, userId, params.id, params.reason); return corsResponse({ success: true, refunded: r.refunded }) }
+        break
+      }
+
+      // Counter
+      case 'counter': {
+        if (action === 'shows') {
+          const { data, error } = await supabase
+            .from('shows')
+            .select('*, events:event_id(title)')
+            .in('status', ['Upcoming', 'Active'])
+            .order('show_date', { ascending: true })
+            .order('start_time', { ascending: true })
+          if (error) throw error
+          return corsResponse((data || []).filter(s => !isPastBookingCutoff(s)))
+        }
         break
       }
 
       // Tickets
       case 'tickets': {
-        if (action === 'verify') { const { data } = await supabase.from('tickets').select('*, bookings:booking_id(*)').eq('ticket_id', params.ticket_id).single(); return corsResponse({ valid: data?.status === 'Valid', ticket: data }) }
+        if (action === 'verify') {
+          const { data: t } = await supabase.from('tickets').select('ticket_id, show_seat_id, status, bookings:booking_id(user_id, event_id, show_id, total_amount, status)').eq('ticket_id', params.ticket_id).single()
+          let seat = null
+          if (t?.show_seat_id) {
+            const { data: s } = await supabase.from('show_seats').select('auditorium_seats!inner(seat_number, row_label, category)').eq('id', t.show_seat_id).single()
+            if (s) seat = s.auditorium_seats
+          }
+          return corsResponse({ valid: t?.status === 'Valid', ticket: { ...t, seat } })
+        }
+        break
+      }
+
+      // Maintenance
+      case 'maintenance': {
+        if (action === 'get') { const { data } = await supabase.from('maintenance_mode').select('*').eq('id', 1).single(); return corsResponse(data) }
+        if (action === 'update') { await supabase.from('maintenance_mode').update({ enabled: params.enabled, message: params.message || undefined, updated_at: new Date().toISOString() }).eq('id', 1); await supabase.from('audit_logs').insert({ user_id: userId, action: 'MAINTENANCE_MODE_' + (params.enabled ? 'ENABLED' : 'DISABLED'), entity_type: 'system', details: params.enabled ? 'Maintenance mode enabled' : 'Maintenance mode disabled' }); return corsResponse({ success: true }) }
         break
       }
 
       // Promos
       case 'promos': {
         if (action === 'list') { const { data } = await supabase.from('promo_codes').select('*').order('created_at', { ascending: false }); return corsResponse(data) }
-        if (action === 'create') { const { data } = await supabase.from('promo_codes').insert(params).select().single(); return corsResponse(data) }
-        if (action === 'update') { const { data } = await supabase.from('promo_codes').update(params).eq('id', params.id).select().single(); return corsResponse(data) }
+        if (action === 'create') { const { id, ...createParams } = params; const { data } = await supabase.from('promo_codes').insert(createParams).select().single(); return corsResponse(data) }
+        if (action === 'update') { const { id, ...updateParams } = params; const { data } = await supabase.from('promo_codes').update(updateParams).eq('id', params.id).select().single(); return corsResponse(data) }
         if (action === 'delete') { await supabase.from('promo_codes').delete().eq('id', params.id); return corsResponse({ success: true }) }
         break
       }

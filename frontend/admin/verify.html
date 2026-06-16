@@ -7,20 +7,34 @@
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/admin/css/admin.css" />
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/html5-qrcode"></script>
   <script src="/js/config.js"></script>
   <script src="/js/api.js"></script>
   <script src="/js/auth.js"></script>
 </head>
 <body>
+  <header class="header">
+    <div class="container">
+      <div class="header-left">
+        <span class="header-logo">🏛️</span>
+        <div>
+          <div class="header-title">Chatrapati Shivaji Maharaj Auditorium</div>
+          <div class="header-subtitle">Naval Station Karanja</div>
+        </div>
+      </div>
+      <nav class="nav">
+        <a href="/">Home</a>
+        <a href="/events.html">Events</a>
+        <a href="/admin/index.html">Admin Panel</a>
+        <a href="/profile.html">My Profile</a>
+        <a href="#" id="adminLogout">Logout</a>
+      </nav>
+    </div>
+  </header>
   <div class="admin-layout">
         <aside class="admin-sidebar">
       <div class="brand">CSM Admin</div>
-      <div id="adminUserInfo" class="admin-user-info">
-        <div id="adminUserName" class="admin-user-name"></div>
-        <div id="adminUserEmail" class="admin-user-email"></div>
-        <div id="adminUserMobile" class="admin-user-mobile"></div>
-        <div id="adminUserRole" class="admin-user-role"></div>
-      </div>
+
       <a href="/admin/index.html">Dashboard</a>
       <a href="/admin/events.html">Events</a>
       <a href="/admin/shows.html">Shows</a>
@@ -34,21 +48,30 @@
       <a href="/admin/audit.html">Audit Log</a>
       <a href="/admin/users.html">Users</a>
       <hr style="border-color:rgba(255,255,255,0.1);margin:1rem 0;" />
-      <a href="/" style="color:var(--secondary);">View Site</a>
-      <a href="#" id="adminLogout">Logout</a>
+
     </aside>
     <main class="admin-main">
-      <h1>Ticket Verification</h1>
-      <div class="card" style="text-align:center;max-width:500px;margin:0 auto;">
-        <p style="margin-bottom:1rem;">Enter Ticket ID to verify</p>
-        <div style="display:flex;gap:0.5rem;">
-          <input class="form-input" id="ticketId" placeholder="Enter Ticket ID or scan QR" />
-          <button class="btn btn-primary" onclick="verifyTicket()">Verify</button>
+      <header class="admin-header">
+        <h1>Ticket Verification</h1>
+      </header>
+      <div class="admin-content">
+        <div class="card" style="text-align:center;max-width:500px;margin:0 auto;">
+          <p style="margin-bottom:1rem;">Enter Ticket ID or scan QR code</p>
+          <div style="display:flex;gap:0.5rem;">
+            <input class="form-input" id="ticketId" placeholder="Paste ticket ID" onkeydown="if(event.key==='Enter')verifyTicket()" />
+            <button class="btn btn-primary" onclick="verifyTicket()">Verify</button>
+            <button class="btn btn-secondary" id="scanBtn" onclick="toggleScanner()">Scan QR</button>
+          </div>
+          <div id="scannerContainer" style="display:none;margin-top:1rem;max-width:400px;margin-left:auto;margin-right:auto;"></div>
+          <div id="verifyResult" style="margin-top:1.5rem;"></div>
         </div>
-        <div id="verifyResult" style="margin-top:1.5rem;"></div>
       </div>
+      <footer class="admin-footer">
+        <p>&copy; 2026 Chatrapati Shivaji Maharaj Auditorium. All rights reserved.</p>
+      </footer>
     </main>
   </div>
   <script src="/admin/js/verify.js"></script>
+  <script src="/js/dark-mode.js"></script>
 </body>
 </html>

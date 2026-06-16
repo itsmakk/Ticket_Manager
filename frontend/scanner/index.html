@@ -6,14 +6,21 @@
   <title>Ticket Scanner - CSM Auditorium</title>
   <link rel="stylesheet" href="/css/style.css" />
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/html5-qrcode"></script>
   <script src="/js/config.js"></script>
   <script src="/js/api.js"></script>
   <script src="/js/auth.js"></script>
 </head>
 <body>
   <header class="header">
-    <div class="container">
-      <a href="/scanner/index.html" class="logo">Scanner</a>
+    <div class="container" style="justify-content:space-between;">
+      <div class="header-left">
+        <span class="header-logo">🏛️</span>
+        <div>
+          <div class="header-title">Chatrapati Shivaji Maharaj Auditorium</div>
+          <div class="header-subtitle">Naval Station Karanja</div>
+        </div>
+      </div>
       <nav>
         <a href="/">Home</a>
         <a href="/profile.html" id="userName" style="display:none"></a>
@@ -29,21 +36,25 @@
       <div style="display:flex;gap:0.5rem;">
         <input class="form-input" id="ticketInput" placeholder="Paste ticket ID here" />
         <button class="btn btn-primary" id="verifyBtn">Verify</button>
+        <button class="btn btn-secondary" id="scanBtn">Scan QR</button>
       </div>
+      <div id="scannerContainer" style="display:none;margin-top:1rem;"></div>
       <div id="result" style="margin-top:1.5rem;"></div>
     </div>
   </main>
   <script>
+let scanner = null
 const verifyBtn = document.getElementById('verifyBtn')
 const ticketInput = document.getElementById('ticketInput')
 const resultDiv = document.getElementById('result')
+const scanBtn = document.getElementById('scanBtn')
 
-verifyBtn.addEventListener('click', async () => {
-  const id = ticketInput.value.trim()
-  if (!id) return
+async function verifyTicket(id) {
+  const ticketId = id || ticketInput.value.trim()
+  if (!ticketId) return
   resultDiv.innerHTML = '<div class="spinner"></div>'
   try {
-    const data = await API.admin('tickets', 'verify', { ticket_id: id })
+    const data = await API.admin('tickets', 'verify', { ticket_id: ticketId })
     const t = data.ticket
     if (data.valid) {
       resultDiv.innerHTML = `<div class="card" style="border:2px solid var(--success);background:#f0fdf4;">
@@ -55,16 +66,50 @@ verifyBtn.addEventListener('click', async () => {
     } else {
       resultDiv.innerHTML = `<div class="card" style="border:2px solid var(--danger);background:#fef2f2;">
         <p style="font-size:1.5rem;color:var(--danger);">&#10007; INVALID</p>
-        <p><strong>Ticket:</strong> ${t?.ticket_id || id}</p>
+        <p><strong>Ticket:</strong> ${t?.ticket_id || ticketId}</p>
         <p><strong>Status:</strong> ${t?.status || 'Not found'}</p>
       </div>`
     }
   } catch (err) {
     resultDiv.innerHTML = `<div class="alert alert-danger">${err.message}</div>`
   }
-})
+}
 
-ticketInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') verifyBtn.click() })
+verifyBtn.addEventListener('click', () => verifyTicket())
+ticketInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') verifyTicket() })
+
+scanBtn.addEventListener('click', async () => {
+  const container = document.getElementById('scannerContainer')
+  if (scanner) {
+    await scanner.stop()
+    scanner = null
+    container.style.display = 'none'
+    scanBtn.textContent = 'Scan QR'
+    return
+  }
+  container.style.display = 'block'
+  scanBtn.textContent = 'Stop'
+  scanner = new Html5Qrcode('scannerContainer')
+  try {
+    await scanner.start(
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: { width: 250, height: 250 } },
+      (decodedText) => {
+        ticketInput.value = decodedText
+        scanner.stop()
+        scanner = null
+        container.style.display = 'none'
+        scanBtn.textContent = 'Scan QR'
+        verifyTicket(decodedText)
+      },
+      () => {}
+    )
+  } catch (err) {
+    container.innerHTML = `<p style="color:var(--danger);">Camera error: ${err.message}</p>`
+    scanBtn.textContent = 'Scan QR'
+  }
+})
   </script>
+  <script src="/js/dark-mode.js"></script>
 </body>
 </html>

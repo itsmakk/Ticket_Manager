@@ -27,15 +27,15 @@ async function loadShows() {
     const container = document.getElementById('showSelector'); const grid = document.getElementById('showsGrid')
     if (!shows?.length) { container.style.display = 'none'; return }
     container.style.display = 'block'
-    const today = new Date().toISOString().split('T')[0]
-    grid.innerHTML = shows.map(s => `<div class="card event-card" style="cursor:pointer;${selectedShow===s.id?'border:2px solid var(--primary);':''}" onclick="selectShow('${s.id}')">
+    grid.innerHTML = shows.map(s => `<div class="card event-card" style="cursor:pointer;${selectedShow===s.id?'border:2px solid var(--primary);':''}" data-show-id="${s.id}">
       <div class="event-card-body">
         <h4>${s.show_date}</h4>
         <p style="font-size:1.2rem;font-weight:600;">${s.start_time}</p>
         <p style="font-size:0.85rem;color:var(--gray-500);">Premium: ₹${s.price_premium} | Gold: ₹${s.price_gold} | Silver: ₹${s.price_silver}</p>
-        ${s.show_date < today ? '<span class="badge badge-danger">Expired</span>' : `<span class="badge badge-${s.status==='Active'?'success':'primary'}">${s.status}</span>`}
+        <span class="badge badge-${s.status==='Active'?'success':'primary'}">${s.status}</span>
       </div>
     </div>`).join('')
+    grid.querySelectorAll('.event-card').forEach(el => el.addEventListener('click', () => selectShow(el.dataset.showId)))
   } catch (err) { console.error(err) }
 }
 
@@ -56,16 +56,21 @@ async function loadSeatMap() {
     if (!show || !seats) { document.getElementById('seatMap').innerHTML = '<p style="color:var(--gray-500);">No seating layout.</p>'; return }
     const html = Object.entries(seats).map(([row, rowSeats]) => `
       <div class="seat-row"><span class="seat-row-label">${row}</span>
-        ${rowSeats.map(s => { const sel = selectedSeats.includes(s.id); return `<div class="seat ${sel?'selected':s.status}" ${(s.status==='available'||sel)?`onclick="toggleSeat('${s.id}','${s.seat_number}','${s.category}')"`:''} title="${s.seat_number} (${s.category})">${s.seat_number.replace(row,'')}</div>` }).join('')}
+        ${rowSeats.map(s => { const sel = selectedSeats.includes(s.id); return `<div class="seat ${sel?'selected':s.status} category-${s.category}" ${(s.status==='available'||sel)?`data-seat-id="${s.id}" data-seat-num="${s.seat_number}" data-seat-cat="${s.category}"`:''} title="${s.seat_number} (${s.category})">${s.seat_number.replace(row,'')}</div>` }).join('')}
         <span class="seat-row-label">${row}</span>
       </div>`).join('')
     document.getElementById('seatMap').innerHTML = `<div class="screen-indicator">SCREEN</div><div class="seat-layout">${html}</div>
       <div style="display:flex;gap:1rem;justify-content:center;margin-top:1rem;flex-wrap:wrap;font-size:0.85rem;">
-        <span><span class="seat available" style="width:1rem;height:1rem;display:inline-block;"></span> Available</span>
+        <span><span class="seat category-premium" style="width:1rem;height:1rem;display:inline-block;"></span> Premium</span>
+        <span><span class="seat category-gold" style="width:1rem;height:1rem;display:inline-block;"></span> Gold</span>
+        <span><span class="seat category-silver" style="width:1rem;height:1rem;display:inline-block;"></span> Silver</span>
         <span><span class="seat selected" style="width:1rem;height:1rem;display:inline-block;"></span> Selected</span>
         <span><span class="seat booked" style="width:1rem;height:1rem;display:inline-block;"></span> Booked</span>
         <span><span class="seat locked" style="width:1rem;height:1rem;display:inline-block;"></span> Locked</span>
       </div>`
+    document.getElementById('seatMap').querySelectorAll('.seat[data-seat-id]').forEach(el => {
+      el.addEventListener('click', () => toggleSeat(el.dataset.seatId, el.dataset.seatNum, el.dataset.seatCat))
+    })
   } catch (err) { document.getElementById('seatMap').innerHTML = `<div class="alert alert-danger">${err.message}</div>` }
 }
 
@@ -81,7 +86,8 @@ async function updateSummary() {
   if (!selectedSeats.length) { s.innerHTML = '<p style="color:var(--gray-500);">Select seats.</p>'; pb.disabled = true; return }
   try {
     const { show } = await API.getSeatMap(selectedShow)
-    let sub = 0; const det = selectedSeatData.map(x => { const p=parseFloat(show['price_'+x.category]||200); sub+=p; return x.seat_number+' ('+x.category+' - ₹'+p+')' }).join(', ')
+    if (!show) throw new Error('Show data not available')
+    let sub = 0; const det = selectedSeatData.map(x => { const price = parseFloat(show['price_'+x.category]); const p = isNaN(price) ? 0 : price; sub+=p; return x.seat_number+' ('+x.category+' - ₹'+p+')' }).join(', ')
     const total = Math.max(0, sub - promoDiscount)
     s.innerHTML = `<p><strong>Seats:</strong> ${det}</p><p><strong>Subtotal:</strong> ₹${sub}</p>${promoDiscount>0?`<p><strong>Discount:</strong> -₹${promoDiscount}</p>`:''}<p style="font-size:1.3rem;font-weight:700;color:var(--primary);"><strong>Total:</strong> ₹${total}</p>`
     pb.disabled = false
@@ -93,7 +99,7 @@ async function applyPromo() {
   const msg = document.getElementById('promoMessage')
   if (!code) { msg.textContent=''; return }
   try {
-    const order = await API.createOrder(selectedShow, selectedSeatData, code)
+    const order = await API.createOrder(selectedShow, selectedSeatData, code, eventId, true)
     promoDiscount = order.discount_amount || 0; promoCodeId = order.promo_code_id || null
     msg.innerHTML = promoDiscount > 0 ? `<span style="color:var(--success);">Discount applied! -₹${promoDiscount}</span>` : '<span style="color:var(--danger);">Invalid code.</span>'
     updateSummary()
@@ -107,7 +113,7 @@ async function proceedToPayment() {
   const btn = document.getElementById('proceedBtn'); btn.disabled = true; btn.textContent = 'Processing...'
   try {
     await API.lockSeats(selectedShow, selectedSeats)
-    razorpayOrder = await API.createOrder(selectedShow, selectedSeatData, document.getElementById('promoInput').value.trim().toUpperCase()||undefined)
+    razorpayOrder = await API.createOrder(selectedShow, selectedSeatData, document.getElementById('promoInput').value.trim().toUpperCase()||undefined, eventId)
     if (razorpayOrder.is_free) { await completeFree(session); return }
     document.getElementById('proceedBtn').style.display = 'none'; document.getElementById('paymentSection').style.display = 'block'
     startLockTimer(300)
@@ -138,6 +144,7 @@ function initiatePayment() {
     },
     modal: { ondismiss: async () => { await releaseSeats(); document.getElementById('paymentSection').style.display='none'; document.getElementById('proceedBtn').style.display='block' } },
     theme: { color: '#1e40af' },
+    timeout: 300,
   }).open()
 }
 

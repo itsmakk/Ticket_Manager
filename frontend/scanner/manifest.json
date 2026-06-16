@@ -1,0 +1,25 @@
+{
+  "name": "CSM Auditorium Ticket Scanner",
+  "short_name": "CSM Scanner",
+  "description": "Verify tickets for Chatrapati Shivaji Maharaj Auditorium",
+  "start_url": "/scanner/index.html",
+  "scope": "/scanner/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f172a",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "/scanner/icon.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/scanner/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
