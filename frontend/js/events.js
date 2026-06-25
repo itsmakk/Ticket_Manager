@@ -116,11 +116,14 @@ async function loadHomepageEvents() {
     const nowShowing = []
     const upcoming = []
 
+    const today = new Date().toISOString().split('T')[0]
     for (const e of events) {
       if (e && e.next_show) {
-        nowShowing.push(e)
-      } else {
-        upcoming.push(e)
+        if (e.next_show.show_date === today) {
+          nowShowing.push(e)
+        } else {
+          upcoming.push(e)
+        }
       }
     }
 
