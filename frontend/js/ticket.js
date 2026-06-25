@@ -14,7 +14,6 @@
 
     const status = data.status || 'Unknown'
     const seatInfo = data.seat
-    const seatLabel = seatInfo ? `${seatInfo.row_label}${seatInfo.seat_number} (${seatInfo.category})` : 'N/A'
     const qrData = JSON.stringify({ ticket_id: data.ticket_id, token: (data.verification_token || '').slice(0, 20) })
 
     const isCancelled = status === 'Cancelled' || status === 'Used'
@@ -51,7 +50,7 @@
               </div>
               <div class="ticket-seat-info">
                 <div class="ticket-seat-label">Seat</div>
-                <div class="ticket-seat-number">${seatInfo ? seatInfo.row_label + seatInfo.seat_number : '—'}</div>
+                <div class="ticket-seat-number">${seatInfo ? seatInfo.seat_number : '—'}</div>
                 <div class="ticket-seat-category">${seatInfo ? seatInfo.category : ''}</div>
               </div>
             </div>
@@ -63,7 +62,7 @@
               <span class="ticket-footer-value">${data.ticket_id}</span>
             </div>
             <div class="ticket-footer-row">
-              <span class="ticket-footer-label">Customer</span>
+              <span class="ticket-footer-label">Booked by</span>
               <span class="ticket-footer-value">${data.customer_name || '—'}</span>
             </div>
             <div class="ticket-footer-row">
@@ -150,7 +149,7 @@
       ctx.fillStyle = '#0f172a'
       ctx.font = 'bold 28px sans-serif'
       ctx.textAlign = 'center'
-      const seatNum = seatInfo ? seatInfo.row_label + seatInfo.seat_number : '—'
+      const seatNum = seatInfo ? seatInfo.seat_number : '—'
       ctx.fillText(seatNum, w / 2, qrY + qrSize + 35)
 
       if (seatInfo) {
