@@ -21,7 +21,7 @@ Deno.serve(async (req) => {
     const eventIds = events.map((e: any) => e.id)
     const { data: shows, error: showsError } = await supabase
       .from('shows')
-      .select('id, event_id, show_date, start_time')
+      .select('id, event_id, show_date, start_time, status')
       .in('event_id', eventIds)
       .in('status', ['Upcoming', 'Active'])
       .gte('show_date', today)

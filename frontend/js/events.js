@@ -116,10 +116,9 @@ async function loadHomepageEvents() {
     const nowShowing = []
     const upcoming = []
 
-    const today = new Date().toISOString().split('T')[0]
     for (const e of events) {
       if (e && e.next_show) {
-        if (e.next_show.show_date === today) {
+        if (e.next_show.status === 'Active') {
           nowShowing.push(e)
         } else {
           upcoming.push(e)
