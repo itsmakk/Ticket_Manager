@@ -60,10 +60,10 @@ Deno.serve(async (req) => {
       // Shows
       case 'shows': {
         if (action === 'list') {
-          const { count } = await supabase.from('shows').select('*', { head: true, count: 'exact' })
-          const { data } = await paginatedQuery(
-            supabase.from('shows')
-              .select('*, events:event_id(title)')
+          let showQuery = supabase.from('shows').select('*, events:event_id(title)', { count: 'exact' })
+          if (params.event_id) showQuery = showQuery.eq('event_id', params.event_id)
+          const { count, data } = await paginatedQuery(
+            showQuery
               .order('show_date', { ascending: false })
               .order('start_time', { ascending: false })
           )

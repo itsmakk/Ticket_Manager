@@ -74,6 +74,26 @@
       </footer>
     </main>
   </div>
+
+  <div class="modal-overlay" id="cancelModal" style="display:none;">
+    <div class="modal" style="max-width:450px;">
+      <div class="modal-header">
+        <h2 class="modal-title">Cancel Booking</h2>
+        <button class="modal-close" onclick="closeCancelModal()">&times;</button>
+      </div>
+      <form id="cancelForm">
+        <input type="hidden" id="cancelBookingId" />
+        <div class="form-group">
+          <label class="form-label">Reason for cancellation (optional)</label>
+          <textarea class="form-input" id="cancelReason" rows="3" placeholder="Enter reason..."></textarea>
+        </div>
+        <div id="cancelError" style="color:var(--danger);font-size:0.9rem;margin-bottom:0.75rem;"></div>
+        <div id="cancelResult"></div>
+        <button class="btn btn-danger btn-block" type="submit" id="confirmCancelBtn">Confirm Cancellation</button>
+      </form>
+    </div>
+  </div>
+
   <script src="/admin/js/bookings.js"></script>
   <script src="/js/dark-mode.js"></script>
 </body>

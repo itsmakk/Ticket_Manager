@@ -1,4 +1,4 @@
-let showsPage = 1, showsTotal = 0, showsLimit = 20
+let showsPage = 1, showsTotal = 0, showsLimit = 20, eventFilterPopulated = false
 function showShowModal() {
   document.getElementById('showModalTitle').textContent = 'New Show'
   document.getElementById('showId').value = ''
@@ -13,7 +13,7 @@ function closeShowModal() {
 async function populateEventDropdown(selectId, selectedId) {
   const sel = document.getElementById(selectId)
   if (!sel) return
-  const events = await API.adminEvents('list')
+  const events = await API.adminEvents('list', { page: 1, limit: 100 })
   sel.innerHTML = '<option value="">Select Event</option>' + (events?.data || events || []).map(e => `<option value="${e.id}">${e.title}</option>`).join('')
   if (selectedId) sel.value = selectedId
 }
@@ -21,12 +21,20 @@ async function populateEventDropdown(selectId, selectedId) {
 async function loadShows(page) {
   if (page !== undefined) showsPage = page
   try {
-    await populateEventDropdown('eventFilter')
+    if (!eventFilterPopulated) {
+      await populateEventDropdown('eventFilter')
+      eventFilterPopulated = true
+    }
     const filterEventId = document.getElementById('eventFilter').value
     const res = await API.adminShows('list', { event_id: filterEventId || undefined, page: showsPage, limit: showsLimit })
     const shows = Array.isArray(res) ? res : (res.data || [])
     showsTotal = Array.isArray(res) ? shows.length : (res.total || 0)
     const tbody = document.getElementById('showsBody')
+    if (!shows.length) {
+      tbody.innerHTML = '<tr><td colspan="8"><div class="alert alert-info">No shows found.</div></td></tr>'
+      document.getElementById('showsPagination').innerHTML = ''
+      return
+    }
     tbody.innerHTML = shows.map(s => `<tr>
       <td>${s.event_title||'-'}</td>
       <td>${s.show_date}</td>
@@ -69,7 +77,7 @@ document.getElementById('showForm')?.addEventListener('submit', async (e) => {
 })
 async function editShow(id) {
   try {
-    const all = await API.adminShows('list')
+    const all = await API.adminShows('list', { page: 1, limit: 100 })
     const r = (all?.data || all || []).find(x => x.id === id)
     if (!r) { alert('Show not found'); return }
     document.getElementById('showModalTitle').textContent = 'Edit Show'

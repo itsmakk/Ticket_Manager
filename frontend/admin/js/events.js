@@ -7,11 +7,16 @@ function closeEventModal() {
 }
 async function loadEvents(page) {
   if (page !== undefined) eventsPage = page
-  const t = document.getElementById('eventsTable')
+  const t = document.getElementById('eventsBody')
   try {
     const res = await API.adminEvents('list', { page: eventsPage, limit: eventsLimit })
     const events = Array.isArray(res) ? res : (res.data || [])
     eventsTotal = Array.isArray(res) ? events.length : (res.total || 0)
+    if (!events.length) {
+      t.innerHTML = '<tr><td colspan="5"><div class="alert alert-info">No events found.</div></td></tr>'
+      document.getElementById('eventsPagination').innerHTML = ''
+      return
+    }
     t.innerHTML = events.map(e => `<tr>
       <td>${e.title}</td>
       <td>${e.category||'-'}</td>
