@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Ticket - CSM Auditorium</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="/js/config.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/qrcode.min.js"></script>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="header-left">
+        <span class="header-logo">🏛️</span>
+        <div>
+          <div class="header-title">Chhatrapati Shivaji Maharaj Auditorium</div>
+          <div class="header-subtitle">Naval Station Karanja</div>
+        </div>
+      </div>
+      <button class="hamburger" id="hamburgerBtn" aria-label="Menu">☰</button>
+      <nav class="nav" id="mainNav">
+        <a href="/">Home</a>
+        <a href="/events.html">Events</a>
+        <a href="/profile.html" id="profileLink">My Profile</a>
+        <span id="userName" style="display:none"></span>
+        <a href="#" id="logoutBtn">Logout</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="container" style="padding: 2rem 1rem;">
+    <div id="ticketContainer">
+      <div class="spinner" style="margin:4rem auto;"></div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; 2026 Chhatrapati Shivaji Maharaj Auditorium</p>
+    </div>
+  </footer>
+
+  <script src="/js/ticket.js"></script>
+  <script src="/js/dark-mode.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const hamburger = document.getElementById('hamburgerBtn')
+      const nav = document.getElementById('mainNav')
+      if (!hamburger || !nav) return
+      hamburger.addEventListener('click', function() {
+        nav.classList.toggle('nav-open')
+        hamburger.textContent = nav.classList.contains('nav-open') ? '\u2715' : '\u2630'
+      })
+      document.addEventListener('click', function(e) {
+        if (!hamburger.contains(e.target) && !nav.contains(e.target)) {
+          nav.classList.remove('nav-open')
+          hamburger.textContent = '\u2630'
+        }
+      })
+    })
+  </script>
+</body>
+</html>

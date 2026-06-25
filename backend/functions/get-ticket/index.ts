@@ -16,7 +16,7 @@ Deno.serve(async (req) => {
     if (profileError || !profile) throw new Error('Unauthorized')
     const { data: ticket, error } = await supabase
       .from('tickets')
-      .select('ticket_id, show_seat_id, status, bookings:booking_id(user_id, event_id, show_id, total_amount, status, events:event_id(title), shows:show_id(show_date, start_time))')
+      .select('ticket_id, show_seat_id, verification_token, status, bookings:booking_id(user_id, event_id, show_id, total_amount, status, events:event_id(title), shows:show_id(show_date, start_time))')
       .eq('ticket_id', ticket_id)
       .single()
     if (error || !ticket) throw new Error('Ticket not found')
@@ -33,11 +33,20 @@ Deno.serve(async (req) => {
         seatInfo = { seat_number: seat.auditorium_seats?.seat_number, row_label: seat.auditorium_seats?.row_label, category: seat.auditorium_seats?.category }
       }
     }
+    const { data: bookingProfile } = await supabase
+      .from('profiles')
+      .select('full_name')
+      .eq('id', ticket.bookings?.user_id)
+      .maybeSingle()
     return corsResponse({
       ticket_id: ticket.ticket_id, status: ticket.status,
+      booking_id: ticket.bookings?.booking_id,
       event_title: ticket.bookings?.events?.title,
       show_date: ticket.bookings?.shows?.show_date,
       show_time: ticket.bookings?.shows?.start_time,
+      total_amount: ticket.bookings?.total_amount,
+      customer_name: bookingProfile?.full_name || null,
+      verification_token: ticket.verification_token,
       seat: seatInfo,
     })
   } catch (err) {

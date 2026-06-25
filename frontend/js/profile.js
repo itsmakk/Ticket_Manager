@@ -88,23 +88,11 @@ async function loadBookings() {
           <p style="font-size:0.85rem;color:var(--text-secondary);">${b.shows?.show_date} ${b.shows?.start_time}</p>
           <p style="font-size:0.85rem;">₹${b.total_amount} <span class="badge badge-${b.status==='Confirmed'?'success':'danger'}">${b.status}</span></p>
         </div>
-        <div style="text-align:right;">${(b.tickets||[]).map(t => `<button class="btn btn-sm btn-outline" style="margin-bottom:0.25rem;" onclick="showQR('${t.ticket_id}','${t.verification_token}','${b.events?.title}','${b.shows?.show_date}','${b.shows?.start_time}','${t.seat?.seat_number||'-'}')">${t.seat ? 'Ticket '+t.seat.seat_number : 'View'}</button>`).join('')||'<span style="font-size:0.85rem;color:var(--text-secondary);">No tickets</span>'}</div>
+        <div style="text-align:right;">${(b.tickets||[]).map(t => `<a href="/ticket.html?ticket_id=${t.ticket_id}" class="btn btn-sm btn-outline" style="margin-bottom:0.25rem;display:inline-block;">${t.seat ? 'Ticket '+t.seat.seat_number : 'View'}</a>`).join('')||'<span style="font-size:0.85rem;color:var(--text-secondary);">No tickets</span>'}</div>
       </div>
     </div>`).join('')
   } catch (err) { container.innerHTML = `<div class="alert alert-danger">${err.message}</div>` }
 }
-
-function showQR(tid, tok, ev, dt, tm, seats) {
-  const d = JSON.stringify({ticket_id:tid, token:tok.slice(0,20)})
-  const m = document.createElement('div'); m.className='modal-overlay'
-  m.innerHTML = `<div class="modal" style="text-align:center;"><div class="modal-header"><h2>Your Ticket</h2><button class="modal-close" onclick="this.closest('.modal-overlay').remove()">&times;</button></div>
-    <div style="padding:1rem 0;"><p><strong>${ev}</strong></p><p style="color:var(--text-secondary);font-size:0.9rem;">${dt} | ${tm}</p><p style="color:var(--text-secondary);font-size:0.9rem;">${seats}</p>
-    <canvas id="qr-${tid}" style="margin:1rem auto;"></canvas><p style="font-family:monospace;font-size:0.8rem;color:var(--text-secondary);">${tid}</p>
-    <button class="btn btn-primary" onclick="dl('${tid}')">Download</button></div></div>`
-  document.body.appendChild(m)
-  QRCode.toCanvas(document.getElementById('qr-'+tid), JSON.stringify(d), {width:200,margin:2})
-}
-function dl(tid) { const c=document.getElementById('qr-'+tid); if(!c)return; const a=document.createElement('a'); a.download='ticket-'+tid+'.png'; a.href=c.toDataURL('image/png'); a.click() }
 
 document.addEventListener('DOMContentLoaded', () => {
   loadProfile()

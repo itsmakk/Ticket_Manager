@@ -145,7 +145,7 @@ async function proceedToPayment() {
 async function completeFree(session) {
   const r = await API.verifyPayment({ razorpay_order_id:'free', razorpay_payment_id:'free', razorpay_signature:'free', show_id:selectedShow, event_id:eventId, seats:selectedSeatData, total_amount:0, discount_amount:promoDiscount, promo_code_id:promoCodeId, user_id:session.user.id, booking_source:'USER' })
   if (lockInterval) clearInterval(lockInterval); selectedSeats=[]; selectedSeatData=[]
-  showSuccess(r.booking_id, 0)
+  showSuccess(r.booking_id, 0, (r.tickets||[]).map(t => t.ticket_id))
 }
 
 function initiatePayment() {
@@ -164,7 +164,7 @@ function initiatePayment() {
       const btn = document.getElementById('payBtn'); btn.disabled=true; btn.textContent='Verifying...'
       try {
         const r = await API.verifyPayment({ razorpay_order_id:res.razorpay_order_id, razorpay_payment_id:res.razorpay_payment_id, razorpay_signature:res.razorpay_signature, show_id:selectedShow, event_id:eventId, seats:selectedSeatData, total_amount:razorpayOrder.amount, discount_amount:promoDiscount, promo_code_id:promoCodeId, user_id:session.user.id, booking_source:'USER' })
-        if (lockInterval) clearInterval(lockInterval); selectedSeats=[]; selectedSeatData=[]; showSuccess(r.booking_id, razorpayOrder.amount)
+        if (lockInterval) clearInterval(lockInterval); selectedSeats=[]; selectedSeatData=[]; showSuccess(r.booking_id, razorpayOrder.amount, (r.tickets||[]).map(t => t.ticket_id))
       } catch (err) { alert('Failed: '+err.message); btn.disabled=false; btn.textContent='Pay Now'; await releaseSeats() }
     },
     modal: { ondismiss: async () => { await releaseSeats(); document.getElementById('paymentSection').style.display='none'; document.getElementById('proceedBtn').style.display='block' } },
@@ -190,8 +190,10 @@ async function releaseSeats() {
   try { await API.releaseSeats(selectedShow, selectedSeats) } catch {}
 }
 
-function showSuccess(id, amt) {
-  document.getElementById('paymentSection').innerHTML = `<div style="text-align:center;padding:2rem;"><div style="font-size:3rem;color:var(--success);">&#10003;</div><h2 style="color:var(--success);">Booking Confirmed!</h2><p>ID: <strong style="font-family:monospace;">${id.slice(0,8)}...</strong></p><p>Amount: <strong>₹${amt}</strong></p><div style="margin-top:1rem;"><a href="/profile.html" class="btn btn-primary">View Tickets</a><a href="/events.html" class="btn btn-outline">More Events</a></div></div>`
+function showSuccess(bookingId, amt, ticketIds) {
+  const firstTicket = ticketIds?.[0]
+  const ticketLink = firstTicket ? `/ticket.html?ticket_id=${firstTicket}` : '/profile.html'
+  document.getElementById('paymentSection').innerHTML = `<div style="text-align:center;padding:2rem;"><div style="font-size:3rem;color:var(--success);">&#10003;</div><h2 style="color:var(--success);">Booking Confirmed!</h2><p style="color:var(--text-secondary);font-size:0.9rem;">Booking ID: <strong style="font-family:monospace;color:var(--text);">${bookingId.slice(0,8)}...</strong></p><p>Amount: <strong>₹${amt}</strong></p><div style="margin-top:1rem;display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;"><a href="${ticketLink}" class="btn btn-primary">View Ticket</a><a href="/events.html" class="btn btn-outline">More Events</a></div></div>`
   document.getElementById('seatMap').innerHTML = '<p style="text-align:center;color:var(--success);font-size:1.2rem;">Booking complete!</p>'
   document.getElementById('summaryContent').innerHTML = ''
 }
