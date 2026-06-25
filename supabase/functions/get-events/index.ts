@@ -16,6 +16,8 @@ Deno.serve(async (req) => {
       .order('created_at', { ascending: false })
     if (eventsError) throw eventsError
 
+    if (!events?.length) return corsResponse([])
+
     const eventIds = events.map((e: any) => e.id)
     const { data: shows, error: showsError } = await supabase
       .from('shows')

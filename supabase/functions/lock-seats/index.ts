@@ -48,7 +48,8 @@ Deno.serve(async (req) => {
         user_id: userId,
         locked_at: now,
         expires_at: expiresAt,
-      }), { onConflict: 'seat_id, show_id' }),
+      })),
+      { onConflict: 'seat_id, show_id' },
     )
     if (lockError) throw new Error('One or more seats were locked by another user')
     const { data: updatedSeats, error: ue } = await supabase.from('show_seats').update({ status: 'locked', locked_at: now }).in('id', seat_ids).eq('show_id', show_id).eq('status', 'available').select('id, status')
