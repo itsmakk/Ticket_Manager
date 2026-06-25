@@ -5,8 +5,8 @@ async function loadUsers(page) {
   const alertDiv = document.getElementById('alert')
   try {
     const res = await API.adminUsers('list', { page: usersPage, limit: usersLimit })
-    const users = res.data || []
-    usersTotal = res.total || 0
+    const users = Array.isArray(res) ? res : (res.data || [])
+    usersTotal = Array.isArray(res) ? users.length : (res.total || 0)
     tbody.innerHTML = users.map(u => {
       const roleOptions = ['user', 'counter', 'scanner', 'admin']
         .map(r => `<option value="${r}"${u.role === r ? ' selected' : ''}>${r}</option>`).join('')

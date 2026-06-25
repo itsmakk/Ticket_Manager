@@ -5,8 +5,8 @@ async function loadBookings(page) {
   if (page != null) bookingsPage = page
   try {
     const res = await API.adminBookings('list', { page: bookingsPage, limit: bookingsLimit })
-    const bookings = res.data || []
-    bookingsTotal = res.total || 0
+    const bookings = Array.isArray(res) ? res : (res.data || [])
+    bookingsTotal = Array.isArray(res) ? bookings.length : (res.total || 0)
     t.innerHTML = bookings.map(b => `<tr><td>#${b.id.slice(0,8)}</td><td>${b.customer_name || b.user_email||'-'}</td><td>${b.events?.title||'-'}</td><td>${b.shows?.show_date||'-'} ${b.shows?.start_time||'-'}</td>
       <td>₹${b.total_amount}</td><td><span class="badge badge-${b.status==='Confirmed'?'success':b.status==='Cancelled'?'danger':'warning'}">${b.status}</span></td>
       <td>${b.status==='Confirmed'?`<button class="btn btn-sm btn-danger cancel-booking" data-id="${b.id}">Cancel</button>`:'<span style="color:var(--text-secondary);font-size:0.85rem;">-</span>'}</td></tr>`).join('')

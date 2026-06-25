@@ -10,8 +10,8 @@ async function loadEvents(page) {
   const t = document.getElementById('eventsTable')
   try {
     const res = await API.adminEvents('list', { page: eventsPage, limit: eventsLimit })
-    const events = res.data || []
-    eventsTotal = res.total || 0
+    const events = Array.isArray(res) ? res : (res.data || [])
+    eventsTotal = Array.isArray(res) ? events.length : (res.total || 0)
     t.innerHTML = events.map(e => `<tr>
       <td>${e.title}</td>
       <td>${e.category||'-'}</td>

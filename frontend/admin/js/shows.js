@@ -24,8 +24,8 @@ async function loadShows(page) {
     await populateEventDropdown('eventFilter')
     const filterEventId = document.getElementById('eventFilter').value
     const res = await API.adminShows('list', { event_id: filterEventId || undefined, page: showsPage, limit: showsLimit })
-    const shows = res.data || []
-    showsTotal = res.total || 0
+    const shows = Array.isArray(res) ? res : (res.data || [])
+    showsTotal = Array.isArray(res) ? shows.length : (res.total || 0)
     const tbody = document.getElementById('showsBody')
     tbody.innerHTML = shows.map(s => `<tr>
       <td>${s.event_title||'-'}</td>
