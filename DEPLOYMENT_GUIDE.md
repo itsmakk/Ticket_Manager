@@ -152,17 +152,75 @@ WHERE email = 'their@email.com';
 1. Go to https://razorpay.com and sign up
 2. Complete KYC verification (may take 1-2 days)
 
-### 3.2 Get API Keys
+### 3.2 Get API Keys (Test Mode)
+
+Razorpay provides **test mode** by default when you first sign up.
 
 1. Go to **Settings → API Keys**
 2. Click **Generate Key**
 3. Copy the **Key ID** and **Key Secret**
+   - Test keys look like: `rzp_test_xxxxxxxxxxxx`
+   - Live keys look like: `rzp_live_xxxxxxxxxxxx`
 
-### 3.3 Test Mode
+### 3.3 Where to Put Each Key (Security Rules)
 
-- Razorpay provides test mode by default
-- Test card: `4111 1111 1111 1111` (any future expiry, any CVV)
-- Test UPI: `success@razorpay` (for UPI payments)
+Razorpay uses **two keys**, and they go in **different places**:
+
+| Key | Purpose | Goes Where | Security |
+|-----|---------|------------|----------|
+| **Key ID** (`rzp_test_...` or `rzp_live_...`) | Initializes Razorpay checkout in browser | **`frontend/js/config.js`** — exposed to browser (required by JS SDK) | Safe to expose — used only to start checkout |
+| **Key Secret** | Signs payment verification server-side | **Supabase Edge Function secrets** — NEVER in frontend | **Never commit or expose** — if leaked, anyone can refund/verify payments |
+
+#### Frontend: `frontend/js/config.js`
+
+```javascript
+const CONFIG = {
+  // ...
+  RAZORPAY_KEY_ID: 'rzp_test_xxxxxxxxxxxx',  // ← change this
+  // ...
+}
+```
+
+> The Key ID is visible in the browser — this is **required** by the Razorpay JS SDK to open the checkout. It is not a secret.
+
+#### Backend: Supabase Edge Function Secrets (CLI)
+
+```bash
+supabase secrets set RAZORPAY_KEY_ID=rzp_test_xxxxxxxxxxxx
+supabase secrets set RAZORPAY_KEY_SECRET=<your-key-secret>
+```
+
+> The Key Secret is stored as a Supabase secret and injected into Edge Functions at runtime. It is **never** sent to the browser.
+
+### 3.4 Switching from Test to Live Mode
+
+When you're ready to accept real payments:
+
+1. Complete Razorpay KYC (dashboard will guide you)
+2. Go to **Settings → API Keys** → **Switch to Live Mode**
+3. Generate live keys (start with `rzp_live_...`)
+4. Update **both** places:
+   - `frontend/js/config.js` → change `RAZORPAY_KEY_ID` to the live key
+   - Supabase secrets → update both `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET`
+5. Git commit and redeploy
+
+> ⚠️ Never commit the live Key Secret to git. Only the Key ID goes in `config.js`.
+
+### 3.5 Test Mode Behavior
+
+- **Test card:** `4111 1111 1111 1111` (any future expiry, any CVV)
+- **Test UPI:** The checkout shows `random@razorpay` or `success@razorpay` as the UPI ID — this is **normal** in test mode
+- **Test OTP:** Use `1234` or `1111`
+- **Test payments** never involve real money
+- In **live mode**, your actual UPI VPA (configured in Razorpay dashboard) will appear instead
+
+### 3.6 Security Checklist
+
+- [ ] `RAZORPAY_KEY_SECRET` is only in `supabase secrets set` — **never** in any `.js`, `.ts`, `.html`, or `.env` file committed to git
+- [ ] `RAZORPAY_KEY_ID` in `config.js` is the **only** key visible in frontend code
+- [ ] `.env` files are listed in `.gitignore` (check with `git status`)
+- [ ] No `.env` or key files are committed (`git add` only what you intend)
+- [ ] Corrupted git history? Use `git rm --cached .env && echo ".env" >> .gitignore` then `git commit -m "remove .env from git"`
 
 ---
 
