@@ -196,4 +196,7 @@ function showSuccess(id, amt) {
 }
 
 document.addEventListener('DOMContentLoaded', loadEvent)
-window.addEventListener('beforeunload', () => releaseSeats())
+window.addEventListener('beforeunload', () => {
+  if (razorpayOrder) return
+  releaseSeats()
+})
