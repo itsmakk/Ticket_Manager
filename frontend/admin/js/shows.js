@@ -4,7 +4,7 @@ function showShowModal() {
   document.getElementById('showId').value = ''
   document.getElementById('showForm').reset()
   document.getElementById('showModal').style.display = 'flex'
-  populateEventDropdown().catch(() => {})
+  populateEventDropdown('showEventId').catch(() => {})
 }
 function closeShowModal() {
   document.getElementById('showModal').style.display = 'none'
@@ -14,7 +14,7 @@ async function populateEventDropdown(selectId, selectedId) {
   const sel = document.getElementById(selectId)
   if (!sel) return
   const events = await API.adminEvents('list')
-  sel.innerHTML = '<option value="">Select Event</option>' + (events||[]).map(e => `<option value="${e.id}">${e.title}</option>`).join('')
+  sel.innerHTML = '<option value="">Select Event</option>' + (events?.data || events || []).map(e => `<option value="${e.id}">${e.title}</option>`).join('')
   if (selectedId) sel.value = selectedId
 }
 
@@ -70,7 +70,7 @@ document.getElementById('showForm')?.addEventListener('submit', async (e) => {
 async function editShow(id) {
   try {
     const all = await API.adminShows('list')
-    const r = all.find(x => x.id === id)
+    const r = (all?.data || all || []).find(x => x.id === id)
     if (!r) { alert('Show not found'); return }
     document.getElementById('showModalTitle').textContent = 'Edit Show'
     document.getElementById('showModal').style.display = 'flex'
