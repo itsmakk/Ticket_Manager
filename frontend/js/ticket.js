@@ -63,8 +63,13 @@
             </div>
             <div class="ticket-footer-row">
               <span class="ticket-footer-label">Booked by</span>
-              <span class="ticket-footer-value">${data.customer_name || '—'}</span>
+              <span class="ticket-footer-value">${data.booked_by || '—'}</span>
             </div>
+            ${data.customer_name && data.customer_name !== data.booked_by ? `
+            <div class="ticket-footer-row">
+              <span class="ticket-footer-label">Customer</span>
+              <span class="ticket-footer-value">${data.customer_name}</span>
+            </div>` : ''}
             <div class="ticket-footer-row">
               <span class="ticket-footer-label">Amount</span>
               <span class="ticket-footer-value">₹${data.total_amount || '0'}</span>

@@ -33,15 +33,13 @@ Deno.serve(async (req) => {
         seatInfo = { seat_number: seat.auditorium_seats?.seat_number, row_label: seat.auditorium_seats?.row_label, category: seat.auditorium_seats?.category }
       }
     }
-    let customerName = ticket.bookings?.customer_name || null
-    if (!customerName) {
-      const { data: bp } = await supabase
-        .from('profiles')
-        .select('full_name')
-        .eq('id', ticket.bookings?.user_id)
-        .maybeSingle()
-      customerName = bp?.full_name || null
-    }
+    const { data: bookerProfile } = await supabase
+      .from('profiles')
+      .select('full_name')
+      .eq('id', ticket.bookings?.user_id)
+      .maybeSingle()
+    const bookedBy = bookerProfile?.full_name || null
+    const customerName = ticket.bookings?.customer_name || null
     return corsResponse({
       ticket_id: ticket.ticket_id, status: ticket.status,
       booking_id: ticket.bookings?.booking_id,
@@ -49,6 +47,7 @@ Deno.serve(async (req) => {
       show_date: ticket.bookings?.shows?.show_date,
       show_time: ticket.bookings?.shows?.start_time,
       total_amount: ticket.bookings?.total_amount,
+      booked_by: bookedBy,
       customer_name: customerName,
       verification_token: ticket.verification_token,
       seat: seatInfo,
