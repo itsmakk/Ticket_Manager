@@ -700,6 +700,118 @@ tr:hover { background: var(--row-hover-bg); }
   margin-bottom: 0.75rem;
 }
 
+.scroll-card-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  cursor: pointer;
+}
+.scroll-card-link:hover { text-decoration: none; }
+
+.scroll-card-poster {
+  position: relative;
+  overflow: hidden;
+}
+.poster-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.25s;
+  cursor: pointer;
+  pointer-events: none;
+}
+.scroll-card-poster:hover .poster-overlay,
+.event-card-poster:hover .poster-overlay {
+  opacity: 1;
+  pointer-events: auto;
+}
+.play-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.9);
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  transition: transform 0.2s;
+  padding-left: 4px;
+}
+.poster-overlay:hover .play-icon {
+  transform: scale(1.1);
+  background: #fff;
+}
+
+.event-card-poster {
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── Trailer Modal ── */
+.trailer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+  padding: 1rem;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.trailer-overlay.active {
+  opacity: 1;
+}
+.trailer-modal {
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+  background: #000;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 0 60px rgba(0,0,0,0.5);
+}
+.trailer-wrapper {
+  position: relative;
+  padding-bottom: 56.25%;
+  height: 0;
+}
+.trailer-wrapper iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+.trailer-close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 10;
+  background: rgba(0,0,0,0.6);
+  border: none;
+  color: #fff;
+  font-size: 1.8rem;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+  line-height: 1;
+}
+.trailer-close:hover {
+  background: rgba(255,255,255,0.2);
+}
+
 /* ── Announcements ── */
 .announcements {
   display: flex;
