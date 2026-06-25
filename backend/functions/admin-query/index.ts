@@ -223,8 +223,12 @@ Deno.serve(async (req) => {
         const { count } = await supabase.from('audit_logs').select('*', { head: true, count: 'exact' })
         const auditLimit = Math.min(Math.max(1, params.limit || 50), 200)
         const from = (page - 1) * auditLimit
-        const { data } = await supabase.from('audit_logs').select('*').order('created_at', { ascending: false }).range(from, from + auditLimit - 1)
-        return corsResponse({ data, total: count || 0, page, limit: auditLimit })
+        const { data } = await supabase.from('audit_logs').select('*, profiles:user_id(full_name)').order('created_at', { ascending: false }).range(from, from + auditLimit - 1)
+        const enriched = (data || []).map(log => {
+          const p = Array.isArray(log.profiles) ? log.profiles[0] : log.profiles
+          return { ...log, user_name: p?.full_name || log.user_id?.slice(0,8) || '-', profiles: undefined }
+        })
+        return corsResponse({ data: enriched, total: count || 0, page, limit: auditLimit })
       }
 
       default:
