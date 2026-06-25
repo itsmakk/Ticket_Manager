@@ -46,7 +46,6 @@
 
 .role-select { padding: 0.25rem; border-radius: var(--radius); border: 1px solid var(--border-strong); background: var(--surface); color: var(--text); }
 
-.admin-sidebar a.book-tickets-link { color: var(--primary) !important; font-weight: 600; }
 
 .dash-header {
   margin-bottom: 1.5rem;
