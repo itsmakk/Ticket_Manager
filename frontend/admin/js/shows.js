@@ -1,42 +1,46 @@
 function showShowModal() {
-  const sel = document.getElementById('showEventId')
-  API.adminEvents('list').then(events => {
-    sel.innerHTML = '<option value="">Select Event</option>' + (events||[]).map(e => `<option value="${e.id}">${e.title}</option>`).join('')
-  }).catch(() => {})
   document.getElementById('showModalTitle').textContent = 'New Show'
   document.getElementById('showId').value = ''
   document.getElementById('showForm').reset()
   document.getElementById('showModal').style.display = 'flex'
+  populateEventDropdown().catch(() => {})
 }
 function closeShowModal() {
   document.getElementById('showModal').style.display = 'none'
 }
+
+async function populateEventDropdown(selectId, selectedId) {
+  const sel = document.getElementById(selectId)
+  if (!sel) return
+  const events = await API.adminEvents('list')
+  sel.innerHTML = '<option value="">Select Event</option>' + (events||[]).map(e => `<option value="${e.id}">${e.title}</option>`).join('')
+  if (selectedId) sel.value = selectedId
+}
+
 async function loadShows() {
   try {
-    const sel = document.getElementById('eventFilter')
-    const events = await API.adminEvents('list')
-    sel.innerHTML = '<option value="">All Events</option>'+(events||[]).map(e=>`<option value="${e.id}">${e.title}</option>`).join('')
+    await populateEventDropdown('eventFilter')
     filterShows()
   } catch(err) { console.error(err) }
 }
 async function filterShows() {
-  const t = document.getElementById('showsTable'); const eid = document.getElementById('eventFilter').value
+  const tbody = document.getElementById('showsBody'); const eid = document.getElementById('eventFilter').value
   try {
-    const evts = await API.adminEvents('list')
-    let shows = []; for(const e of (evts||[]).filter(x=>!eid||x.id===eid)) { const s = await API.getShows(e.id); (s||[]).forEach(x=>x.event_title=e.title); shows=shows.concat(s||[]) }
-    t.innerHTML = shows.map(s => `<tr>
+    const all = await API.adminShows('list')
+    let shows = eid ? all.filter(s => s.event_id === eid) : all
+    tbody.innerHTML = shows.map(s => `<tr>
       <td>${s.event_title||'-'}</td>
       <td>${s.show_date}</td>
       <td>${s.start_time}</td>
       <td>₹${s.price_premium}</td>
       <td>₹${s.price_gold}</td>
       <td>₹${s.price_silver}</td>
-      <td><span class="badge badge-${s.status==='Active'?'success':'warning'}">${s.status}</span></td>
+      <td><span class="badge badge-${s.status==='Active'?'success':s.status==='Cancelled'?'danger':'warning'}">${s.status}</span></td>
       <td><button class="btn btn-sm btn-primary edit-show" data-id="${s.id}">Edit</button><button class="btn btn-sm btn-danger delete-show" data-id="${s.id}">Delete</button></td>
     </tr>`).join('')
-    t.querySelectorAll('.edit-show').forEach(b => b.addEventListener('click', () => editShow(b.dataset.id)))
-    t.querySelectorAll('.delete-show').forEach(b => b.addEventListener('click', () => deleteShow(b.dataset.id)))
-  } catch(err) { t.innerHTML=`<tr><td colspan="8"><div class="alert alert-danger">${err.message}</div></td></tr>` }
+    tbody.querySelectorAll('.edit-show').forEach(b => b.addEventListener('click', () => editShow(b.dataset.id)))
+    tbody.querySelectorAll('.delete-show').forEach(b => b.addEventListener('click', () => deleteShow(b.dataset.id)))
+  } catch(err) { tbody.innerHTML=`<tr><td colspan="8"><div class="alert alert-danger">${err.message}</div></td></tr>` }
 }
 document.getElementById('showForm')?.addEventListener('submit', async (e) => {
   e.preventDefault()
@@ -50,7 +54,7 @@ document.getElementById('showForm')?.addEventListener('submit', async (e) => {
       price_premium: parseFloat(document.getElementById('pricePremium').value),
       price_gold: parseFloat(document.getElementById('priceGold').value),
       price_silver: parseFloat(document.getElementById('priceSilver').value),
-      booking_cutoff_minutes: parseInt(document.getElementById('showCutoff')?.value) || 30,
+      booking_cutoff_minutes: 30,
       status: document.getElementById('showStatus').value,
     }
     if (!d.event_id) return alert('Select an event')
@@ -64,27 +68,20 @@ document.getElementById('showForm')?.addEventListener('submit', async (e) => {
 })
 async function editShow(id) {
   try {
-    const events = await API.adminEvents('list')
-    for (const e of events) {
-      const s = await API.getShows(e.id)
-      const r = (s||[]).find(x => x.id === id)
-      if (r) {
-        document.getElementById('showId').value = r.id
-        document.getElementById('showEventId').value = r.event_id
-        document.getElementById('showDate').value = r.show_date
-        document.getElementById('showTime').value = r.start_time
-        document.getElementById('showDuration').value = r.duration ?? 120
-        document.getElementById('pricePremium').value = r.price_premium
-        document.getElementById('priceGold').value = r.price_gold
-        document.getElementById('priceSilver').value = r.price_silver
-        const cutoffEl = document.getElementById('showCutoff')
-        if (cutoffEl) cutoffEl.value = r.booking_cutoff_minutes ?? 30
-        document.getElementById('showStatus').value = r.status
-        document.getElementById('showModalTitle').textContent = 'Edit Show'
-        document.getElementById('showModal').style.display = 'flex'
-        return
-      }
-    }
+    const all = await API.adminShows('list')
+    const r = all.find(x => x.id === id)
+    if (!r) { alert('Show not found'); return }
+    document.getElementById('showModalTitle').textContent = 'Edit Show'
+    document.getElementById('showModal').style.display = 'flex'
+    await populateEventDropdown('showEventId', r.event_id)
+    document.getElementById('showId').value = r.id
+    document.getElementById('showDate').value = r.show_date
+    document.getElementById('showTime').value = r.start_time
+    document.getElementById('showDuration').value = r.duration ?? 120
+    document.getElementById('pricePremium').value = r.price_premium
+    document.getElementById('priceGold').value = r.price_gold
+    document.getElementById('priceSilver').value = r.price_silver
+    document.getElementById('showStatus').value = r.status
   } catch (err) { alert('Error: ' + err.message) }
 }
 async function deleteShow(id) {

@@ -47,6 +47,14 @@ Deno.serve(async (req) => {
 
       // Shows
       case 'shows': {
+        if (action === 'list') {
+          const { data } = await supabase
+            .from('shows')
+            .select('*, events:event_id(title)')
+            .order('show_date', { ascending: false })
+            .order('start_time', { ascending: false })
+          return corsResponse((data || []).map(s => ({ ...s, event_title: (s as any).events?.title || '' })))
+        }
         if (action === 'create') {
           const { id, ...createParams } = params
           const { data, error } = await supabase.from('shows').insert(createParams).select().single()
