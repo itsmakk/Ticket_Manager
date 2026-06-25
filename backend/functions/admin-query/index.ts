@@ -121,7 +121,8 @@ Deno.serve(async (req) => {
       case 'bookings': {
         if (action === 'list') {
           const { count } = await supabase.from('bookings').select('*', { head: true, count: 'exact' })
-          const { data } = await paginatedQuery(supabase.from('bookings').select('*, events:event_id(title), shows:show_id(show_date, start_time), booking_seats(*)').order('created_at', { ascending: false }))
+          const { data, error } = await paginatedQuery(supabase.from('bookings').select('*, events:event_id(title), shows:show_id(show_date, start_time)').order('created_at', { ascending: false }))
+          if (error) throw error
           return corsResponse({ data, total: count || 0, page, limit })
         }
         if (action === 'cancel') { const r = await cancelBooking(supabase, userId, params.id, params.reason); return corsResponse({ success: true, refunded: r.refunded }) }
