@@ -411,13 +411,14 @@ img { max-width: 100%; height: auto; }
 .seat.available { background: var(--seat-available-bg); border-color: var(--seat-available-border); }
 .seat.available:hover { background: var(--seat-available-hover); }
 .seat.selected { background: var(--primary) !important; color: white !important; border-color: var(--primary) !important; }
-.seat.booked { background: var(--seat-booked-bg); color: var(--seat-booked-text); cursor: not-allowed; border-color: var(--seat-booked-border); }
-.seat.locked { background: var(--seat-locked-bg); color: white; cursor: not-allowed; border-color: var(--seat-locked-border); }
-.seat.blocked { background: var(--seat-blocked-bg); color: white; cursor: not-allowed; border-color: var(--seat-blocked-border); }
 
 .seat.category-premium { background: var(--seat-premium-bg); border-color: var(--seat-premium-border); color: var(--seat-premium-text); }
 .seat.category-gold { background: var(--seat-gold-bg); border-color: var(--seat-gold-border); color: var(--seat-gold-text); }
 .seat.category-silver { background: var(--seat-silver-bg); border-color: var(--seat-silver-border); color: var(--seat-silver-text); }
+
+.seat.booked { background: var(--seat-booked-bg); color: var(--seat-booked-text); cursor: not-allowed; border-color: var(--seat-booked-border); }
+.seat.locked { background: var(--seat-locked-bg); color: white; cursor: not-allowed; border-color: var(--seat-locked-border); }
+.seat.blocked { background: var(--seat-blocked-bg); color: white; cursor: not-allowed; border-color: var(--seat-blocked-border); }
 
 .screen-indicator {
   background: var(--screen-indicator-bg);

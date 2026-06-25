@@ -72,6 +72,7 @@ async function loadCounterSeats() {
       <span><span class="seat selected" style="width:1rem;height:1rem;display:inline-block;"></span> Selected</span>
       <span><span class="seat booked" style="width:1rem;height:1rem;display:inline-block;"></span> Booked</span>
       <span><span class="seat locked" style="width:1rem;height:1rem;display:inline-block;"></span> Locked</span>
+      <span><span class="seat blocked" style="width:1rem;height:1rem;display:inline-block;"></span> Blocked</span>
     </div>`
     sec.innerHTML = html
     // BUG-C1 FIX: Only available seats get click handlers
