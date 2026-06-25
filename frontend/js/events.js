@@ -73,9 +73,9 @@ function buildCardHTML(e) {
           <div class="scroll-card-meta">${e.category || 'Event'}${dateStr ? ' &middot; ' + dateStr : ''}</div>
         </div>
       </a>
-      <div style="padding:0 1rem 1rem;display:flex;gap:0.5rem;">
-        <a href="/event-detail.html?id=${e.id}" class="btn btn-primary btn-sm" style="flex:1;text-align:center;">Book Now</a>
-        ${hasTrailer ? `<button class="btn btn-outline btn-sm" data-trailer-url="${e.trailer_url}" style="flex:1;">Trailer</button>` : ''}
+      <div class="scroll-card-actions">
+        <a href="/event-detail.html?id=${e.id}" class="btn btn-primary btn-sm">Book Now</a>
+        ${hasTrailer ? `<button class="btn btn-outline btn-sm" data-trailer-url="${e.trailer_url}">Trailer</button>` : ''}
       </div>
     </div>`
 }
