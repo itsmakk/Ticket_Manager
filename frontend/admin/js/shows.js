@@ -13,7 +13,7 @@ function closeShowModal() {
 async function populateEventDropdown(selectId, selectedId) {
   const sel = document.getElementById(selectId)
   if (!sel) return
-  const events = await API.adminEvents('list', { page: 1, limit: 100 })
+  const events = await API.adminEvents('list', { page: 1, limit: 1000 })
   sel.innerHTML = '<option value="">Select Event</option>' + (events?.data || events || []).map(e => `<option value="${e.id}">${e.title}</option>`).join('')
   if (selectedId) sel.value = selectedId
 }
@@ -97,4 +97,4 @@ async function deleteShow(id) {
   if (!confirm('Delete?')) return
   try { await API.adminShows('delete', { id }); loadShows() } catch (err) { alert('Error: ' + err.message) }
 }
-document.addEventListener('DOMContentLoaded', loadShows)
+document.addEventListener('DOMContentLoaded', () => loadShows())

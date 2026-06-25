@@ -113,4 +113,4 @@ async function deleteEvent(id) {
   if (!confirm('Delete?')) return
   try { await API.adminEvents('delete', { id }); loadEvents() } catch (err) { alert('Error: ' + err.message) }
 }
-document.addEventListener('DOMContentLoaded', loadEvents)
+document.addEventListener('DOMContentLoaded', () => loadEvents())

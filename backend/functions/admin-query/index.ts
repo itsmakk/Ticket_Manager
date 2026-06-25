@@ -24,7 +24,7 @@ Deno.serve(async (req) => {
     if (!isAdmin && !scannerAllowed && !counterAllowed) throw new Error('Unauthorized')
 
     const page = Math.max(1, params.page || 1)
-    const limit = Math.min(Math.max(1, params.limit || 20), 100)
+    const limit = Math.min(Math.max(1, params.limit || 20), 1000)
 
     function paginatedQuery(query: any) {
       const from = (page - 1) * limit

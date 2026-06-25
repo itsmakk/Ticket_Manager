@@ -51,4 +51,4 @@ async function confirmCancellation() {
 }
 
 document.getElementById('cancelForm')?.addEventListener('submit', (e) => { e.preventDefault(); confirmCancellation() })
-document.addEventListener('DOMContentLoaded', loadBookings)
+document.addEventListener('DOMContentLoaded', () => loadBookings())
