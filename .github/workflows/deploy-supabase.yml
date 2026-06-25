@@ -18,6 +18,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
       - uses: supabase/setup-cli@v1
         with:
           version: latest
@@ -32,9 +37,11 @@ jobs:
 
       - name: Deploy edge functions
         run: |
+          failed=""
           for fn in supabase/functions/*/; do
             name=$(basename "$fn")
             [ "$name" = "_shared" ] && continue
             echo "Deploying $name..."
-            supabase functions deploy "$name" --project-ref "$SUPABASE_PROJECT_REF"
+            supabase functions deploy "$name" --project-ref "$SUPABASE_PROJECT_REF" || { echo "::error::$name failed"; failed="$failed $name"; }
           done
+          if [ -n "$failed" ]; then echo "Failed: $failed"; exit 1; fi
