@@ -9,4 +9,6 @@ details.txt
 .agents/
 .vscode/
 skills-lock.json
-supabase/
+supabase/.temp/
+supabase/supabase/
+backend/functions/supabase/

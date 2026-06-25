@@ -44,12 +44,13 @@
 | v0.19.6 | 2026-06-15 | BUG-052: Fixed missing null-check on `show` in booking.js `updateSummary()` |
 | v0.19.7 | 2026-06-15 | BUG-053: Fixed lock-seats — TOCTOU race, ownership check, and rollback stomping concurrent locks |
 | v0.19.8 | 2026-06-15 | BUG-055: Fixed counter.js — silent failures; added visible error feedback, null checks, and seat selection reset on show change |
+| v0.20.0 | 2026-06-25 | Feature: Event poster image upload (JPG/JPEG/PNG, <1MB) to Supabase Storage instead of URL; YouTube trailer URL field with embedded player on event detail page; GitHub Actions CI/CD workflow for Supabase deploy; Supabase config tracked in git |
 
 ---
 
 ## Current Phase
 
-**Counter booking dropdown investigation — BUG-054 & BUG-055 fixed**
+**Poster image upload + YouTube trailer + GitHub Actions CI/CD — v0.20.0**
 
 ---
 
@@ -99,6 +100,7 @@
 | A1    | Edge Functions architecture                     | 2026-06-14 | 11 Edge Functions (get-events, get-shows, get-seat-map, get-bookings, get-ticket, lock-seats, release-seats, create-order, verify-payment, cancel-booking, admin-query). api.js helper created. All frontend JS updated to use API.* instead of direct supabase queries. |
 | 17    | Scanner mobile app (PWA)                        | 2026-06-15 | PWA manifest.json, service worker (offline caching), icon.svg. QR camera scanning via html5-qrcode (environment camera, auto-pause on scan). Manual ticket ID fallback. Visual flash + vibration feedback. Auto-clear valid results (3s). Scan history (50 entries, localStorage). Responsive mobile-first layout. Role-based auth (scanner/admin). |
 | 14    | Email notifications (Resend)                   | 2026-06-15 | _shared/email.ts helper with Resend API integration. Booking confirmation email with per-ticket QR codes (server-side generated via qrcode). Cancellation email with refund status. Fire-and-forget pattern (non-blocking). RESEND_API_KEY and RESEND_FROM env vars documented. |
+| 18    | Poster upload + YouTube trailer + CI/CD        | 2026-06-25 | Event poster image upload (JPG/JPEG/PNG <1MB) to Supabase Storage with preview; YouTube trailer URL with embedded player; GitHub Actions workflow for auto-deploy; Supabase config tracked in git |
 
 ---
 

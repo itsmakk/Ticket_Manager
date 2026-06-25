@@ -10,12 +10,19 @@ async function loadEvent() {
     const events = await API.getEvents()
     const event = events.find(e => e.id === eventId)
     if (!event) { document.getElementById('eventDetail').innerHTML = '<div class="alert alert-danger">Event not found.</div>'; return }
+    function getYoutubeEmbedUrl(url) {
+      if (!url) return null
+      const match = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
+      return match ? `https://www.youtube.com/embed/${match[1]}` : null
+    }
+    const trailerEmbed = getYoutubeEmbedUrl(event.trailer_url)
     document.getElementById('eventDetail').innerHTML = `
       <div class="card">
         ${event.poster_url ? `<img src="${event.poster_url}" alt="${event.title}" style="width:100%;max-height:300px;object-fit:cover;border-radius:var(--radius);margin-bottom:1rem;" />` : ''}
         <h1>${event.title}</h1>
         <p style="color:var(--gray-500);margin-top:0.5rem;">${event.description || ''}</p>
         <p><span class="badge badge-primary">${event.category || 'Event'}</span></p>
+        ${trailerEmbed ? `<div style="margin-top:1rem;position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:var(--radius);"><iframe src="${trailerEmbed}" style="position:absolute;top:0;left:0;width:100%;height:100%;" frameborder="0" allowfullscreen></iframe></div>` : ''}
       </div>`
     loadShows()
   } catch (err) { document.getElementById('eventDetail').innerHTML = `<div class="alert alert-danger">${err.message}</div>` }
