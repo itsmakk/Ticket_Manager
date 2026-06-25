@@ -40,7 +40,7 @@ jobs:
           failed=""
           for fn in supabase/functions/*/; do
             name=$(basename "$fn")
-            [ "$name" = "_shared" ] && continue
+            [ "$name" = "_shared" ] || [ "$name" = "supabase" ] && continue
             echo "Deploying $name..."
             supabase functions deploy "$name" --project-ref "$SUPABASE_PROJECT_REF" || { echo "::error::$name failed"; failed="$failed $name"; }
           done
