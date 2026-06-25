@@ -15,14 +15,21 @@ async function loadEvent() {
       const match = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
       return match ? `https://www.youtube.com/embed/${match[1]}` : null
     }
-    const trailerEmbed = getYoutubeEmbedUrl(event.trailer_url)
+    const hasTrailer = event.trailer_url && getYoutubeEmbedUrl(event.trailer_url)
+    const posterHtml = event.poster_url
+      ? `<img src="${event.poster_url}" alt="${event.title}" />`
+      : '<div class="event-poster-placeholder">No poster</div>'
     document.getElementById('eventDetail').innerHTML = `
-      <div class="card">
-        ${event.poster_url ? `<img src="${event.poster_url}" alt="${event.title}" style="width:100%;max-height:300px;object-fit:cover;border-radius:var(--radius);margin-bottom:1rem;" />` : ''}
-        <h1>${event.title}</h1>
-        <p style="color:var(--text-secondary);margin-top:0.5rem;">${event.description || ''}</p>
-        <p><span class="badge badge-primary">${event.category || 'Event'}</span></p>
-        ${trailerEmbed ? `<div style="margin-top:1rem;position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:var(--radius);"><iframe src="${trailerEmbed}" style="position:absolute;top:0;left:0;width:100%;height:100%;" frameborder="0" allowfullscreen></iframe></div>` : ''}
+      <div class="event-detail">
+        <div class="event-poster-wrap">${posterHtml}</div>
+        <div class="event-info">
+          <div class="event-meta"><span class="badge badge-primary">${event.category || 'Event'}</span></div>
+          <h1>${event.title}</h1>
+          <div class="event-description">${event.description || ''}</div>
+          <div class="event-actions">
+            ${hasTrailer ? `<button class="btn btn-outline" data-trailer-url="${event.trailer_url}">▶ Trailer</button>` : ''}
+          </div>
+        </div>
       </div>`
     loadShows()
   } catch (err) { document.getElementById('eventDetail').innerHTML = `<div class="alert alert-danger">${err.message}</div>` }
@@ -34,7 +41,7 @@ async function loadShows() {
     const container = document.getElementById('showSelector'); const grid = document.getElementById('showsGrid')
     if (!shows?.length) { container.style.display = 'none'; return }
     container.style.display = 'block'
-    grid.innerHTML = shows.map(s => `<div class="card event-card" style="cursor:pointer;${selectedShow===s.id?'border:2px solid var(--primary);':''}" data-show-id="${s.id}">
+    grid.innerHTML = shows.map(s => `<div class="card show-card${selectedShow===s.id?' selected':''}" data-show-id="${s.id}">
       <div class="event-card-body">
         <h4>${s.show_date}</h4>
         <p style="font-size:1.2rem;font-weight:600;">${s.start_time}</p>
@@ -42,7 +49,8 @@ async function loadShows() {
         <span class="badge badge-${s.status==='Active'?'success':'primary'}">${s.status}</span>
       </div>
     </div>`).join('')
-    grid.querySelectorAll('.event-card').forEach(el => el.addEventListener('click', () => selectShow(el.dataset.showId)))
+    grid.className = 'shows-grid'
+    grid.querySelectorAll('.show-card').forEach(el => el.addEventListener('click', () => selectShow(el.dataset.showId)))
   } catch (err) { console.error(err) }
 }
 
@@ -60,7 +68,7 @@ async function loadSeatMap() {
   container.style.display = 'block'
   try {
     const { show, seats } = await API.getSeatMap(selectedShow)
-    if (!show || !seats) { document.getElementById('seatMap').innerHTML = '<p style="color:var(--gray-500);">No seating layout.</p>'; return }
+    if (!show || !seats) { document.getElementById('seatMap').innerHTML = '<p style="color:var(--text-secondary);">No seating layout.</p>'; return }
     cachedShowPricing = {
       price_premium: show.price_premium,
       price_gold: show.price_gold,
@@ -71,7 +79,7 @@ async function loadSeatMap() {
         ${rowSeats.map(s => { const sel = selectedSeats.includes(s.id); return `<div class="seat ${sel?'selected':s.status} category-${s.category}" ${(s.status==='available'||sel)?`data-seat-id="${s.id}" data-seat-num="${s.seat_number}" data-seat-cat="${s.category}"`:''} title="${s.seat_number} (${s.category})">${s.seat_number.replace(row,'')}</div>` }).join('')}
         <span class="seat-row-label">${row}</span>
       </div>`).join('')
-    document.getElementById('seatMap').innerHTML = `<div class="screen-indicator">SCREEN</div><div class="seat-layout">${html}</div>
+    document.getElementById('seatMap').innerHTML = `<div class="seat-map-scroll"><div class="screen-indicator">SCREEN</div><div class="seat-layout">${html}</div></div>
       <div style="display:flex;gap:1rem;justify-content:center;margin-top:1rem;flex-wrap:wrap;font-size:0.85rem;">
         <span><span class="seat category-premium" style="width:1rem;height:1rem;display:inline-block;"></span> Premium</span>
         <span><span class="seat category-gold" style="width:1rem;height:1rem;display:inline-block;"></span> Gold</span>

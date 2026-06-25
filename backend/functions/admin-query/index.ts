@@ -23,6 +23,14 @@ Deno.serve(async (req) => {
     const counterAllowed = isCounter && resource === 'counter' && action === 'shows'
     if (!isAdmin && !scannerAllowed && !counterAllowed) throw new Error('Unauthorized')
 
+    const page = Math.max(1, params.page || 1)
+    const limit = Math.min(Math.max(1, params.limit || 20), 100)
+
+    function paginatedQuery(query: any) {
+      const from = (page - 1) * limit
+      return query.range(from, from + limit - 1)
+    }
+
     switch (resource) {
       // Dashboard
       case 'dashboard': {
@@ -37,7 +45,11 @@ Deno.serve(async (req) => {
 
       // Events
       case 'events': {
-        if (action === 'list') { const { data } = await supabase.from('events').select('*').order('created_at', { ascending: false }); return corsResponse(data) }
+        if (action === 'list') {
+          const { count } = await supabase.from('events').select('*', { head: true, count: 'exact' })
+          const { data } = await paginatedQuery(supabase.from('events').select('*').order('created_at', { ascending: false }))
+          return corsResponse({ data, total: count || 0, page, limit })
+        }
         if (action === 'get') { const { data } = await supabase.from('events').select('*').eq('id', params.id).single(); return corsResponse(data) }
         if (action === 'create') { const { id, ...createParams } = params; const { data } = await supabase.from('events').insert(createParams).select().single(); await supabase.from('audit_logs').insert({ user_id: userId, action: 'EVENT_CREATED', entity_type: 'event', entity_id: data?.id }); return corsResponse(data) }
         if (action === 'update') { const { id, ...updateParams } = params; const { data } = await supabase.from('events').update(updateParams).eq('id', params.id).select().single(); await supabase.from('audit_logs').insert({ user_id: userId, action: 'EVENT_UPDATED', entity_type: 'event', entity_id: params.id }); return corsResponse(data) }
@@ -48,12 +60,14 @@ Deno.serve(async (req) => {
       // Shows
       case 'shows': {
         if (action === 'list') {
-          const { data } = await supabase
-            .from('shows')
-            .select('*, events:event_id(title)')
-            .order('show_date', { ascending: false })
-            .order('start_time', { ascending: false })
-          return corsResponse((data || []).map(s => ({ ...s, event_title: (s as any).events?.title || '' })))
+          const { count } = await supabase.from('shows').select('*', { head: true, count: 'exact' })
+          const { data } = await paginatedQuery(
+            supabase.from('shows')
+              .select('*, events:event_id(title)')
+              .order('show_date', { ascending: false })
+              .order('start_time', { ascending: false })
+          )
+          return corsResponse({ data: (data || []).map(s => ({ ...s, event_title: (s as any).events?.title || '' })), total: count || 0, page, limit })
         }
         if (action === 'create') {
           const { id, ...createParams } = params
@@ -105,7 +119,11 @@ Deno.serve(async (req) => {
 
       // Bookings
       case 'bookings': {
-        if (action === 'list') { const { data } = await supabase.from('bookings').select('*, events:event_id(title), shows:show_id(show_date, start_time), booking_seats(*)').order('created_at', { ascending: false }).limit(100); return corsResponse(data) }
+        if (action === 'list') {
+          const { count } = await supabase.from('bookings').select('*', { head: true, count: 'exact' })
+          const { data } = await paginatedQuery(supabase.from('bookings').select('*, events:event_id(title), shows:show_id(show_date, start_time), booking_seats(*)').order('created_at', { ascending: false }))
+          return corsResponse({ data, total: count || 0, page, limit })
+        }
         if (action === 'cancel') { const r = await cancelBooking(supabase, userId, params.id, params.reason); return corsResponse({ success: true, refunded: r.refunded }) }
         break
       }
@@ -181,13 +199,15 @@ Deno.serve(async (req) => {
       // Users
       case 'users': {
         if (action === 'list') {
+          const { count } = await supabase.from('profiles').select('*', { head: true, count: 'exact' })
           const { data: authUsers } = await supabase.auth.admin.listUsers()
-          const { data: profiles } = await supabase.from('profiles').select('*')
+          const from = (page - 1) * limit
+          const { data: profiles } = await supabase.from('profiles').select('*').range(from, from + limit - 1)
           const merged = (profiles || []).map(p => {
             const au = authUsers?.users?.find(u => u.id === p.id)
             return { ...p, email: p.email || au?.email || '', last_sign_in: au?.last_sign_in_at || null, created_at: p.created_at }
           })
-          return corsResponse(merged)
+          return corsResponse({ data: merged, total: count || 0, page, limit })
         }
         if (action === 'update_role') {
           if (params.id === userId && params.role !== 'admin') throw new Error('Cannot demote yourself')
@@ -200,8 +220,11 @@ Deno.serve(async (req) => {
 
       // Audit
       case 'audit': {
-        const { data } = await supabase.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(200)
-        return corsResponse(data)
+        const { count } = await supabase.from('audit_logs').select('*', { head: true, count: 'exact' })
+        const auditLimit = Math.min(Math.max(1, params.limit || 50), 200)
+        const from = (page - 1) * auditLimit
+        const { data } = await supabase.from('audit_logs').select('*').order('created_at', { ascending: false }).range(from, from + auditLimit - 1)
+        return corsResponse({ data, total: count || 0, page, limit: auditLimit })
       }
 
       default:

@@ -33,15 +33,18 @@ Deno.serve(async (req) => {
       if (!grouped[row]) grouped[row] = []
       grouped[row].push(seat)
     }
-    for (const row of Object.keys(grouped)) {
+    const sortedRows = Object.keys(grouped).sort()
+    for (const row of sortedRows) {
       grouped[row].sort((a, b) => {
         const numA = parseInt(a.seat_number.replace(/^[A-Za-z]+/, ''), 10)
         const numB = parseInt(b.seat_number.replace(/^[A-Za-z]+/, ''), 10)
         return (isNaN(numA) ? 0 : numA) - (isNaN(numB) ? 0 : numB)
       })
     }
+    const ordered: Record<string, any[]> = {}
+    for (const row of sortedRows) ordered[row] = grouped[row]
     const { events: _events, ...publicShow } = show
-    return corsResponse({ show: publicShow, seats: grouped })
+    return corsResponse({ show: publicShow, seats: ordered })
   } catch (err) {
     return corsResponse({ error: err.message }, 400)
   }

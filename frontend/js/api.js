@@ -64,4 +64,21 @@
     adminAudit() { return this.admin('audit', 'list') },
     adminUsers(action, data) { return this.admin('users', action, data) },
   }
+
+  window.renderPagination = function(containerId, page, total, limit, onClick) {
+    const el = document.getElementById(containerId)
+    if (!el) return
+    const totalPages = Math.ceil(total / limit)
+    if (totalPages <= 1) { el.innerHTML = ''; return }
+    let html = ''
+    if (page > 1) html += `<button class="pagination-btn" data-p="${page - 1}">« Prev</button>`
+    const start = Math.max(1, page - 2)
+    const end = Math.min(totalPages, page + 2)
+    if (start > 1) html += `<button class="pagination-btn" data-p="1">1</button>${start > 2 ? '<span class="pagination-info">...</span>' : ''}`
+    for (let i = start; i <= end; i++) html += `<button class="pagination-btn${i === page ? ' active' : ''}" data-p="${i}">${i}</button>`
+    if (end < totalPages) html += `${end < totalPages - 1 ? '<span class="pagination-info">...</span>' : ''}<button class="pagination-btn" data-p="${totalPages}">${totalPages}</button>`
+    if (page < totalPages) html += `<button class="pagination-btn" data-p="${page + 1}">Next »</button>`
+    el.innerHTML = html
+    el.querySelectorAll('.pagination-btn[data-p]').forEach(btn => btn.addEventListener('click', () => onClick(parseInt(btn.dataset.p))))
+  }
 })()

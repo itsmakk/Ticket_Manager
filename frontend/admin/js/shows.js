@@ -1,3 +1,4 @@
+let showsPage = 1, showsTotal = 0, showsLimit = 20
 function showShowModal() {
   document.getElementById('showModalTitle').textContent = 'New Show'
   document.getElementById('showId').value = ''
@@ -17,17 +18,15 @@ async function populateEventDropdown(selectId, selectedId) {
   if (selectedId) sel.value = selectedId
 }
 
-async function loadShows() {
+async function loadShows(page) {
+  if (page !== undefined) showsPage = page
   try {
     await populateEventDropdown('eventFilter')
-    filterShows()
-  } catch(err) { console.error(err) }
-}
-async function filterShows() {
-  const tbody = document.getElementById('showsBody'); const eid = document.getElementById('eventFilter').value
-  try {
-    const all = await API.adminShows('list')
-    let shows = eid ? all.filter(s => s.event_id === eid) : all
+    const filterEventId = document.getElementById('eventFilter').value
+    const res = await API.adminShows('list', { event_id: filterEventId || undefined, page: showsPage, limit: showsLimit })
+    const shows = res.data || []
+    showsTotal = res.total || 0
+    const tbody = document.getElementById('showsBody')
     tbody.innerHTML = shows.map(s => `<tr>
       <td>${s.event_title||'-'}</td>
       <td>${s.show_date}</td>
@@ -40,8 +39,10 @@ async function filterShows() {
     </tr>`).join('')
     tbody.querySelectorAll('.edit-show').forEach(b => b.addEventListener('click', () => editShow(b.dataset.id)))
     tbody.querySelectorAll('.delete-show').forEach(b => b.addEventListener('click', () => deleteShow(b.dataset.id)))
-  } catch(err) { tbody.innerHTML=`<tr><td colspan="8"><div class="alert alert-danger">${err.message}</div></td></tr>` }
+    window.renderPagination('showsPagination', showsPage, showsTotal, showsLimit, p => loadShows(p))
+  } catch(err) { const tbody = document.getElementById('showsBody'); tbody.innerHTML=`<tr><td colspan="8"><div class="alert alert-danger">${err.message}</div></td></tr>` }
 }
+async function filterShows() { loadShows(1) }
 document.getElementById('showForm')?.addEventListener('submit', async (e) => {
   e.preventDefault()
   try {
@@ -60,7 +61,7 @@ document.getElementById('showForm')?.addEventListener('submit', async (e) => {
     if (!d.event_id) return alert('Select an event')
     if (id) d.id = id
     await API.adminShows(id ? 'update' : 'create', d)
-    filterShows()
+    loadShows()
     e.target.reset()
     document.getElementById('showId').value = ''
     closeShowModal()
@@ -86,6 +87,6 @@ async function editShow(id) {
 }
 async function deleteShow(id) {
   if (!confirm('Delete?')) return
-  try { await API.adminShows('delete', { id }); filterShows() } catch (err) { alert('Error: ' + err.message) }
+  try { await API.adminShows('delete', { id }); loadShows() } catch (err) { alert('Error: ' + err.message) }
 }
 document.addEventListener('DOMContentLoaded', loadShows)

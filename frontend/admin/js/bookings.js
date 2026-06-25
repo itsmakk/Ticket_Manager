@@ -1,11 +1,17 @@
-async function loadBookings() {
+let bookingsPage = 1, bookingsTotal = 0, bookingsLimit = 20
+
+async function loadBookings(page) {
   const t = document.getElementById('bookingsBody')
+  if (page != null) bookingsPage = page
   try {
-    const bookings = await API.adminBookings('list')
-    t.innerHTML = (bookings||[]).map(b => `<tr><td>#${b.id.slice(0,8)}</td><td>${b.customer_name || b.user_email||'-'}</td><td>${b.events?.title||'-'}</td><td>${b.shows?.show_date||'-'} ${b.shows?.start_time||'-'}</td>
+    const res = await API.adminBookings('list', { page: bookingsPage, limit: bookingsLimit })
+    const bookings = res.data || []
+    bookingsTotal = res.total || 0
+    t.innerHTML = bookings.map(b => `<tr><td>#${b.id.slice(0,8)}</td><td>${b.customer_name || b.user_email||'-'}</td><td>${b.events?.title||'-'}</td><td>${b.shows?.show_date||'-'} ${b.shows?.start_time||'-'}</td>
       <td>₹${b.total_amount}</td><td><span class="badge badge-${b.status==='Confirmed'?'success':b.status==='Cancelled'?'danger':'warning'}">${b.status}</span></td>
-      <td>${b.status==='Confirmed'?`<button class="btn btn-sm btn-danger cancel-booking" data-id="${b.id}">Cancel</button>`:'<span style="color:var(--gray-500);font-size:0.85rem;">-</span>'}</td></tr>`).join('')
+      <td>${b.status==='Confirmed'?`<button class="btn btn-sm btn-danger cancel-booking" data-id="${b.id}">Cancel</button>`:'<span style="color:var(--text-secondary);font-size:0.85rem;">-</span>'}</td></tr>`).join('')
     t.querySelectorAll('.cancel-booking').forEach(el => el.addEventListener('click', () => showCancelModal(el.dataset.id)))
+    renderPagination('bookingsPagination', bookingsPage, bookingsTotal, bookingsLimit, p => loadBookings(p))
   } catch(err) { t.innerHTML=`<tr><td colspan="7"><div class="alert alert-danger">${err.message}</div></td></tr>` }
 }
 
