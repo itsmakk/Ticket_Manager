@@ -50,7 +50,7 @@ document.getElementById('showForm')?.addEventListener('submit', async (e) => {
       price_premium: parseFloat(document.getElementById('pricePremium').value),
       price_gold: parseFloat(document.getElementById('priceGold').value),
       price_silver: parseFloat(document.getElementById('priceSilver').value),
-      booking_cutoff_minutes: parseInt(document.getElementById('showCutoff').value) || 30,
+      booking_cutoff_minutes: parseInt(document.getElementById('showCutoff')?.value) || 30,
       status: document.getElementById('showStatus').value,
     }
     if (!d.event_id) return alert('Select an event')
@@ -77,7 +77,8 @@ async function editShow(id) {
         document.getElementById('pricePremium').value = r.price_premium
         document.getElementById('priceGold').value = r.price_gold
         document.getElementById('priceSilver').value = r.price_silver
-        document.getElementById('showCutoff').value = r.booking_cutoff_minutes ?? 30
+        const cutoffEl = document.getElementById('showCutoff')
+        if (cutoffEl) cutoffEl.value = r.booking_cutoff_minutes ?? 30
         document.getElementById('showStatus').value = r.status
         document.getElementById('showModalTitle').textContent = 'Edit Show'
         document.getElementById('showModal').style.display = 'flex'
