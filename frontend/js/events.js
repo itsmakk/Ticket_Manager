@@ -113,20 +113,12 @@ async function loadHomepageEvents() {
     if (!Array.isArray(events)) {
       throw new Error('Invalid response from server')
     }
-    const now = new Date()
-    const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
-
     const nowShowing = []
     const upcoming = []
 
     for (const e of events) {
       if (e && e.next_show) {
-        const showDate = new Date(e.next_show.show_date + 'T' + (e.next_show.start_time || '00:00'))
-        if (showDate <= sevenDaysFromNow) {
-          nowShowing.push(e)
-        } else {
-          upcoming.push(e)
-        }
+        nowShowing.push(e)
       } else {
         upcoming.push(e)
       }
