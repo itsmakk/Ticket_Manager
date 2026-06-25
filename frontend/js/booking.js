@@ -20,7 +20,7 @@ async function loadEvent() {
       <div class="card">
         ${event.poster_url ? `<img src="${event.poster_url}" alt="${event.title}" style="width:100%;max-height:300px;object-fit:cover;border-radius:var(--radius);margin-bottom:1rem;" />` : ''}
         <h1>${event.title}</h1>
-        <p style="color:var(--gray-500);margin-top:0.5rem;">${event.description || ''}</p>
+        <p style="color:var(--text-secondary);margin-top:0.5rem;">${event.description || ''}</p>
         <p><span class="badge badge-primary">${event.category || 'Event'}</span></p>
         ${trailerEmbed ? `<div style="margin-top:1rem;position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:var(--radius);"><iframe src="${trailerEmbed}" style="position:absolute;top:0;left:0;width:100%;height:100%;" frameborder="0" allowfullscreen></iframe></div>` : ''}
       </div>`
@@ -38,7 +38,7 @@ async function loadShows() {
       <div class="event-card-body">
         <h4>${s.show_date}</h4>
         <p style="font-size:1.2rem;font-weight:600;">${s.start_time}</p>
-        <p style="font-size:0.85rem;color:var(--gray-500);">Premium: ₹${s.price_premium} | Gold: ₹${s.price_gold} | Silver: ₹${s.price_silver}</p>
+        <p style="font-size:0.85rem;color:var(--text-secondary);">Premium: ₹${s.price_premium} | Gold: ₹${s.price_gold} | Silver: ₹${s.price_silver}</p>
         <span class="badge badge-${s.status==='Active'?'success':'primary'}">${s.status}</span>
       </div>
     </div>`).join('')

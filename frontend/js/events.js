@@ -17,7 +17,7 @@ function buildCardHTML(e) {
     <a href="/event-detail.html?id=${e.id}" style="text-decoration:none;color:inherit;display:block;">
       ${e.poster_url
         ? `<img class="scroll-card-img" src="${e.poster_url}" alt="${e.title}" loading="lazy" />`
-        : '<div style="height:180px;background:var(--gray-200);display:flex;align-items:center;justify-content:center;color:var(--text-secondary);font-size:0.85rem;">No Image</div>'}
+        : '<div style="height:180px;background:var(--bg-alt);display:flex;align-items:center;justify-content:center;color:var(--text-secondary);font-size:0.85rem;">No Image</div>'}
       <div class="scroll-card-body">
         <div class="scroll-card-title">${e.title}</div>
         <div class="scroll-card-meta">${e.category || 'Event'}${dateStr ? ' &middot; ' + dateStr : ''}</div>
@@ -31,7 +31,7 @@ function buildGridCardHTML(e) {
     <a href="/event-detail.html?id=${e.id}" class="event-card" style="text-decoration:none;color:inherit;">
       ${e.poster_url
         ? `<img class="event-card-img" src="${e.poster_url}" alt="${e.title}" loading="lazy" />`
-        : '<div style="height:200px;background:var(--gray-200);display:flex;align-items:center;justify-content:center;color:var(--text-secondary);">No Image</div>'}
+        : '<div style="height:200px;background:var(--bg-alt);display:flex;align-items:center;justify-content:center;color:var(--text-secondary);">No Image</div>'}
       <div class="event-card-body">
         <h3 class="event-card-title">${e.title}</h3>
         <p class="event-card-meta">${e.category || 'Event'}${e.next_show ? ' &middot; ' + formatDate(e.next_show.show_date, e.next_show.start_time) : ''}</p>

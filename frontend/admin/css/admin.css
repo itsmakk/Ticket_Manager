@@ -2,7 +2,7 @@
 .admin-sidebar {
   width: 240px;
   background: var(--sidebar-bg);
-  color: white;
+  color: var(--text);
   padding: 1rem;
   flex-shrink: 0;
 }
@@ -11,7 +11,7 @@
   font-weight: 700;
   margin-bottom: 1.5rem;
   padding: 0.5rem;
-  color: white;
+  color: var(--text);
 }
 .admin-sidebar a {
   display: block;
@@ -23,13 +23,17 @@
   transition: background 0.2s;
 }
 .admin-sidebar a:hover {
-  background: rgba(255,255,255,0.1);
+  background: rgba(0,0,0,0.06);
   text-decoration: none;
+  color: var(--text);
+}
+.dark-mode .admin-sidebar a:hover {
+  background: rgba(255,255,255,0.1);
   color: white;
 }
 .admin-sidebar hr {
   border: none;
-  border-top: 1px solid rgba(255,255,255,0.1);
+  border-top: 1px solid var(--border);
   margin: 1rem 0;
 }
 .role-badge {
@@ -41,6 +45,8 @@
 }
 
 .role-select { padding: 0.25rem; border-radius: var(--radius); border: 1px solid var(--border-strong); background: var(--surface); color: var(--text); }
+
+.admin-sidebar a.book-tickets-link { color: var(--primary) !important; font-weight: 600; }
 
 .dash-header {
   margin-bottom: 1.5rem;

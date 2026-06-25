@@ -128,6 +128,12 @@
   --dash-header-border: var(--border);
   --table-header-bg: var(--bg-alt);
   --row-hover-bg: var(--bg-alt);
+
+  /* Legacy gray aliases for backwards compat */
+  --gray-50: #FAFAFA;
+  --gray-100: #F4F4F5;
+  --gray-200: #E4E4E7;
+  --gray-500: var(--text-secondary);
 }
 
 .dark-mode {

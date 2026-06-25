@@ -79,16 +79,16 @@ async function loadBookings() {
   try {
     const bookings = await API.getBookings()
     if (!bookings?.length) {
-      container.innerHTML = '<div style="text-align:center;padding:2rem 0;"><p style="color:var(--gray-500);margin-bottom:1rem;">No bookings yet.</p><a href="/events.html" class="btn btn-primary">Browse Events</a></div>'; return
+      container.innerHTML = '<div style="text-align:center;padding:2rem 0;"><p style="color:var(--text-secondary);margin-bottom:1rem;">No bookings yet.</p><a href="/events.html" class="btn btn-primary">Browse Events</a></div>'; return
     }
-    container.innerHTML = bookings.map(b => `<div style="padding:0.75rem 0;border-bottom:1px solid var(--gray-200);">
+    container.innerHTML = bookings.map(b => `<div style="padding:0.75rem 0;border-bottom:1px solid var(--border);">
       <div style="display:flex;justify-content:space-between;align-items:start;gap:0.5rem;">
         <div>
           <strong>${b.events?.title||'Event'}</strong>
-          <p style="font-size:0.85rem;color:var(--gray-500);">${b.shows?.show_date} ${b.shows?.start_time}</p>
+          <p style="font-size:0.85rem;color:var(--text-secondary);">${b.shows?.show_date} ${b.shows?.start_time}</p>
           <p style="font-size:0.85rem;">₹${b.total_amount} <span class="badge badge-${b.status==='Confirmed'?'success':'danger'}">${b.status}</span></p>
         </div>
-        <div style="text-align:right;">${(b.tickets||[]).map(t => `<button class="btn btn-sm btn-outline" style="margin-bottom:0.25rem;" onclick="showQR('${t.ticket_id}','${t.verification_token}','${b.events?.title}','${b.shows?.show_date}','${b.shows?.start_time}','${t.seat?.seat_number||'-'}')">${t.seat ? 'Ticket '+t.seat.seat_number : 'View'}</button>`).join('')||'<span style="font-size:0.85rem;color:var(--gray-500);">No tickets</span>'}</div>
+        <div style="text-align:right;">${(b.tickets||[]).map(t => `<button class="btn btn-sm btn-outline" style="margin-bottom:0.25rem;" onclick="showQR('${t.ticket_id}','${t.verification_token}','${b.events?.title}','${b.shows?.show_date}','${b.shows?.start_time}','${t.seat?.seat_number||'-'}')">${t.seat ? 'Ticket '+t.seat.seat_number : 'View'}</button>`).join('')||'<span style="font-size:0.85rem;color:var(--text-secondary);">No tickets</span>'}</div>
       </div>
     </div>`).join('')
   } catch (err) { container.innerHTML = `<div class="alert alert-danger">${err.message}</div>` }
@@ -98,8 +98,8 @@ function showQR(tid, tok, ev, dt, tm, seats) {
   const d = JSON.stringify({ticket_id:tid, token:tok.slice(0,20)})
   const m = document.createElement('div'); m.className='modal-overlay'
   m.innerHTML = `<div class="modal" style="text-align:center;"><div class="modal-header"><h2>Your Ticket</h2><button class="modal-close" onclick="this.closest('.modal-overlay').remove()">&times;</button></div>
-    <div style="padding:1rem 0;"><p><strong>${ev}</strong></p><p style="color:var(--gray-500);font-size:0.9rem;">${dt} | ${tm}</p><p style="color:var(--gray-500);font-size:0.9rem;">${seats}</p>
-    <canvas id="qr-${tid}" style="margin:1rem auto;"></canvas><p style="font-family:monospace;font-size:0.8rem;color:var(--gray-500);">${tid}</p>
+    <div style="padding:1rem 0;"><p><strong>${ev}</strong></p><p style="color:var(--text-secondary);font-size:0.9rem;">${dt} | ${tm}</p><p style="color:var(--text-secondary);font-size:0.9rem;">${seats}</p>
+    <canvas id="qr-${tid}" style="margin:1rem auto;"></canvas><p style="font-family:monospace;font-size:0.8rem;color:var(--text-secondary);">${tid}</p>
     <button class="btn btn-primary" onclick="dl('${tid}')">Download</button></div></div>`
   document.body.appendChild(m)
   QRCode.toCanvas(document.getElementById('qr-'+tid), JSON.stringify(d), {width:200,margin:2})

@@ -29,11 +29,11 @@
     var btn = document.createElement('button');
     btn.id = 'dm-toggle-btn';
     if (sidebar) btn.className = 'dm-admin';
-    btn.style.cssText = 'background:none;border:none;cursor:pointer;font-size:1.15rem;line-height:1;padding:0.4rem 0.5rem;border-radius:6px;transition:all 0.2s;color:rgba(255,255,255,0.9);display:inline-flex;align-items:center;gap:6px;';
+    btn.style.cssText = 'background:none;border:none;cursor:pointer;font-size:1.15rem;line-height:1;padding:0.4rem 0.5rem;border-radius:6px;transition:all 0.2s;color:var(--header-text);display:inline-flex;align-items:center;gap:6px;';
     if (sidebar) {
-      btn.style.cssText = 'background:none;border:none;cursor:pointer;width:100%;padding:0.6rem 0.75rem;font-size:0.9rem;border-radius:6px;color:rgba(255,255,255,0.7);display:inline-flex;align-items:center;gap:6px;';
+      btn.style.cssText = 'background:none;border:none;cursor:pointer;width:100%;padding:0.6rem 0.75rem;font-size:0.9rem;border-radius:6px;color:var(--sidebar-text);display:inline-flex;align-items:center;gap:6px;';
     }
-    btn.onmouseenter = function() { this.style.background = 'rgba(255,255,255,0.12)'; };
+    btn.onmouseenter = function() { this.style.background = 'rgba(128,128,128,0.15)'; };
     btn.onmouseleave = function() { this.style.background = 'none'; };
     btn.onclick = function() {
       var isDark = document.documentElement.classList.contains(CLS);
