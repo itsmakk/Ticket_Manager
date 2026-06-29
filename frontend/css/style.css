@@ -758,7 +758,7 @@ tr:hover { background: var(--row-hover-bg); }
 .carousel-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.55);
+  background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.75) 100%);
 }
 
 .carousel-content {
@@ -767,27 +767,31 @@ tr:hover { background: var(--row-hover-bg); }
   text-align: center;
   color: #fff;
   max-width: 720px;
-  padding: 2rem;
+  padding: 2.5rem;
+  background: rgba(0,0,0,0.45);
+  border-radius: 12px;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255,255,255,0.08);
 }
 
 .carousel-content h1 {
   font-size: 2.2rem;
   font-weight: 700;
   margin-bottom: 0.75rem;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  text-shadow: 0 2px 12px rgba(0,0,0,0.5);
 }
 
 .carousel-tagline {
   font-size: 1.1rem;
   font-style: italic;
   margin-bottom: 1rem;
-  opacity: 0.9;
-  color: var(--primary);
+  opacity: 0.95;
+  color: #60a5fa;
 }
 
 .carousel-content p {
   font-size: 1rem;
-  opacity: 0.9;
+  opacity: 0.92;
   margin-bottom: 0.5rem;
 }
 
@@ -797,32 +801,6 @@ tr:hover { background: var(--row-hover-bg); }
   gap: 1rem;
   justify-content: center;
   flex-wrap: wrap;
-}
-
-/* ── Hero Text Section ── */
-.hero-text-section {
-  background: linear-gradient(135deg, var(--hero-from) 0%, var(--hero-to) 100%);
-  color: #fff;
-  text-align: center;
-  padding: 3rem 1rem;
-}
-.hero-text-section h1 {
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-}
-.hero-text-section .hero-tagline {
-  font-size: 1.1rem;
-  font-style: italic;
-  margin-bottom: 1rem;
-  color: var(--primary);
-}
-.hero-text-section .hero-desc {
-  font-size: 1rem;
-  opacity: 0.9;
-  max-width: 700px;
-  margin: 0 auto;
-  line-height: 1.6;
 }
 
 .btn-outline-light {
@@ -1211,8 +1189,9 @@ tr:hover { background: var(--row-hover-bg); }
   .header { position: sticky; top: 0; z-index: 100; }
 
   .hero-carousel { height: 380px; }
-  .hero-text-section { padding: 2rem 1rem; }
-  .hero-text-section h1 { font-size: 1.5rem; }
+  .carousel-content { padding: 1.5rem; margin: 0 1rem; }
+  .carousel-content h1 { font-size: 1.4rem; }
+  .carousel-content p { font-size: 0.85rem; }
   .carousel-btn { width: 36px; height: 36px; font-size: 1.5rem; }
   .carousel-prev { left: 0.5rem; }
   .carousel-next { right: 0.5rem; }
