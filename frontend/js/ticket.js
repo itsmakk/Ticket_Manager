@@ -11,6 +11,7 @@
     if (!session) { location.href = '/login.html?redirect=/ticket.html?ticket_id=' + ticketId; return }
 
     const data = await API.getTicket(ticketId)
+    const esc = (s) => window.UI ? UI.escapeHtml(s) : String(s == null ? '' : s)
 
     const status = data.status || 'Unknown'
     const seatInfo = data.seat
@@ -22,23 +23,23 @@
     container.innerHTML = `
       <div class="ticket-page">
         <div class="ticket ${isCancelled ? 'ticket-cancelled' : ''}">
-          ${isCancelled ? '<div class="ticket-stamp">' + status + '</div>' : ''}
+          ${isCancelled ? '<div class="ticket-stamp">' + esc(status) + '</div>' : ''}
 
           <div class="ticket-header">
             <div class="ticket-venue">
               <span class="ticket-venue-icon">🏛️</span>
               <span>Chhatrapati Shivaji Maharaj Auditorium</span>
             </div>
-            <span class="ticket-status" style="color:${statusColor}">${status}</span>
+            <span class="ticket-status" style="color:${statusColor}">${esc(status)}</span>
           </div>
 
           <div class="ticket-body">
             <div class="ticket-event-section">
-              <h1 class="ticket-event-title">${data.event_title || 'Event'}</h1>
+              <h1 class="ticket-event-title">${esc(data.event_title || 'Event')}</h1>
               <div class="ticket-datetime">
-                <span class="ticket-date">${data.show_date || 'TBD'}</span>
+                <span class="ticket-date">${esc(data.show_date || 'TBD')}</span>
                 <span class="ticket-time-sep">|</span>
-                <span class="ticket-time">${data.show_time ? formatTicketTime(data.show_time) : 'TBD'}</span>
+                <span class="ticket-time">${data.show_time ? esc(formatTicketTime(data.show_time)) : 'TBD'}</span>
               </div>
             </div>
             <div class="ticket-divider">
@@ -46,12 +47,12 @@
             </div>
             <div class="ticket-seat-section">
               <div class="ticket-qr">
-                <canvas id="qrCanvas" width="180" height="180"></canvas>
+                <canvas id="qrCanvas" width="180" height="180" role="img" aria-label="Ticket QR code"></canvas>
               </div>
               <div class="ticket-seat-info">
                 <div class="ticket-seat-label">Seat</div>
-                <div class="ticket-seat-number">${seatInfo ? seatInfo.seat_number : '—'}</div>
-                <div class="ticket-seat-category">${seatInfo ? seatInfo.category : ''}</div>
+                <div class="ticket-seat-number">${seatInfo ? esc(seatInfo.seat_number) : '—'}</div>
+                <div class="ticket-seat-category">${seatInfo ? esc(seatInfo.category) : ''}</div>
               </div>
             </div>
           </div>
@@ -59,20 +60,20 @@
           <div class="ticket-footer">
             <div class="ticket-footer-row">
               <span class="ticket-footer-label">Ticket ID</span>
-              <span class="ticket-footer-value">${data.ticket_id}</span>
+              <span class="ticket-footer-value">${esc(data.ticket_id)}</span>
             </div>
             <div class="ticket-footer-row">
               <span class="ticket-footer-label">Booked by</span>
-              <span class="ticket-footer-value">${data.booked_by || '—'}</span>
+              <span class="ticket-footer-value">${esc(data.booked_by || '—')}</span>
             </div>
             ${data.customer_name && data.customer_name !== data.booked_by ? `
             <div class="ticket-footer-row">
               <span class="ticket-footer-label">Customer</span>
-              <span class="ticket-footer-value">${data.customer_name}</span>
+              <span class="ticket-footer-value">${esc(data.customer_name)}</span>
             </div>` : ''}
             <div class="ticket-footer-row">
               <span class="ticket-footer-label">Amount</span>
-              <span class="ticket-footer-value">₹${data.total_amount || '0'}</span>
+              <span class="ticket-footer-value">₹${esc(data.total_amount || '0')}</span>
             </div>
           </div>
         </div>
@@ -176,10 +177,12 @@
       a.download = 'ticket-' + data.ticket_id.slice(0, 8) + '.png'
       a.href = offscreen.toDataURL('image/png')
       a.click()
+      if (window.UI) UI.toast('Ticket downloaded', 'success')
     }
 
   } catch (err) {
-    container.innerHTML = `<div class="alert alert-danger">${err.message || 'Failed to load ticket'}</div>`
+    const m = err.message || 'Failed to load ticket'
+    container.innerHTML = `<div class="alert alert-danger" role="alert">${window.UI ? UI.escapeHtml(m) : m}</div>`
   }
 })()
 

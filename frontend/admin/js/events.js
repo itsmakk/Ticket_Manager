@@ -1,4 +1,8 @@
 let eventsPage = 1, eventsTotal = 0, eventsLimit = 20
+const esc = (s) => window.UI ? UI.escapeHtml(s) : String(s == null ? '' : s)
+function notifyErr(m) { if (window.UI) UI.toast(m, 'error'); else alert(m) }
+function notifyOk(m) { if (window.UI) UI.toast(m, 'success') }
+async function uiConfirm(msg, opts) { return window.UI ? UI.confirm(Object.assign({ message: msg }, opts)) : confirm(msg) }
 function showEventModal() {
   document.getElementById('eventModal').style.display = 'flex'
 }
@@ -18,11 +22,11 @@ async function loadEvents(page) {
       return
     }
     t.innerHTML = events.map(e => `<tr>
-      <td>${e.title}</td>
-      <td>${e.category||'-'}</td>
-      <td><span class="badge badge-${e.status==='Published'?'success':'warning'}">${e.status||'Draft'}</span></td>
-      <td>${new Date(e.created_at).toLocaleDateString()}</td>
-      <td><button class="btn btn-sm btn-primary edit-event" data-id="${e.id}">Edit</button><button class="btn btn-sm btn-danger delete-event" data-id="${e.id}">Delete</button></td>
+      <td>${esc(e.title)}</td>
+      <td>${esc(e.category||'-')}</td>
+      <td><span class="badge badge-${e.status==='Published'?'success':'warning'}">${esc(e.status||'Draft')}</span></td>
+      <td>${esc(new Date(e.created_at).toLocaleDateString())}</td>
+      <td><button class="btn btn-sm btn-primary edit-event" data-id="${esc(e.id)}">Edit</button><button class="btn btn-sm btn-danger delete-event" data-id="${esc(e.id)}">Delete</button></td>
     </tr>`).join('')
     t.querySelectorAll('.edit-event').forEach(b => b.addEventListener('click', () => editEvent(b.dataset.id)))
     t.querySelectorAll('.delete-event').forEach(b => b.addEventListener('click', () => deleteEvent(b.dataset.id)))
@@ -34,7 +38,7 @@ document.getElementById('eventPosterFile')?.addEventListener('change', function(
   const file = this.files[0]
   if (!file) return
   if (file.size > 1048576) {
-    alert('File too large. Maximum size is 1MB.')
+    notifyErr('File too large. Maximum size is 1MB.')
     this.value = ''
     return
   }
@@ -79,6 +83,7 @@ document.getElementById('eventForm')?.addEventListener('submit', async (e) => {
     }
     if (id) d.id = id
     await API.adminEvents(id ? 'update' : 'create', d)
+    notifyOk(id ? 'Event updated' : 'Event created')
     loadEvents()
     f.reset()
     document.getElementById('eventId').value = ''
@@ -86,7 +91,7 @@ document.getElementById('eventForm')?.addEventListener('submit', async (e) => {
     document.getElementById('eventPosterPreview').style.display = 'none'
     document.getElementById('eventModalTitle').textContent = 'New Event'
     closeEventModal()
-  } catch (err) { alert('Error: ' + err.message) }
+  } catch (err) { notifyErr(err.message) }
 })
 async function editEvent(id) {
   try {
@@ -107,10 +112,10 @@ async function editEvent(id) {
     document.getElementById('eventStatus').value = r.status
     document.getElementById('eventModalTitle').textContent = 'Edit Event'
     document.getElementById('eventModal').style.display = 'flex'
-  } catch (err) { alert('Error: ' + err.message) }
+  } catch (err) { notifyErr(err.message) }
 }
 async function deleteEvent(id) {
-  if (!confirm('Delete?')) return
-  try { await API.adminEvents('delete', { id }); loadEvents() } catch (err) { alert('Error: ' + err.message) }
+  if (!await uiConfirm('Delete this event? This cannot be undone.', { title: 'Delete event', confirmText: 'Delete' })) return
+  try { await API.adminEvents('delete', { id }); notifyOk('Event deleted'); loadEvents() } catch (err) { notifyErr(err.message) }
 }
 document.addEventListener('DOMContentLoaded', () => loadEvents())

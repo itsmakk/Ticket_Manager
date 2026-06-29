@@ -1,3 +1,8 @@
+const esc = (s) => window.UI ? UI.escapeHtml(s) : String(s == null ? '' : s)
+function notifyErr(m) { if (window.UI) UI.toast(m, 'error'); else alert(m) }
+function notifyOk(m) { if (window.UI) UI.toast(m, 'success') }
+async function uiConfirm(msg, opts) { return window.UI ? UI.confirm(Object.assign({ message: msg }, opts)) : confirm(msg) }
+
 function showPromoModal() {
   document.getElementById('promoForm').reset()
   document.getElementById('promoId').value = ''
@@ -20,9 +25,9 @@ async function loadPromos() {
     t.innerHTML = (promos||[]).map(p => {
       const dt = (p.discount_type||'').toUpperCase()
       const disp = dt === 'PERCENTAGE' ? p.discount_value+'%' : dt === 'COMPLIMENTARY' ? '100% OFF' : '₹'+p.discount_value
-      return `<tr><td>${p.code}</td><td>${disp}</td><td>₹${p.max_discount_amount||'-'}</td><td>₹${p.min_order_amount||0}</td><td>${p.max_uses||'Unlimited'}</td><td>${p.used_count||0}</td>
+      return `<tr><td>${esc(p.code)}</td><td>${esc(disp)}</td><td>₹${esc(p.max_discount_amount||'-')}</td><td>₹${esc(p.min_order_amount||0)}</td><td>${esc(p.max_uses||'Unlimited')}</td><td>${esc(p.used_count||0)}</td>
       <td><span class="badge badge-${p.is_active?'success':'danger'}">${p.is_active?'Active':'Inactive'}</span></td>
-      <td><button class="btn btn-sm btn-primary edit-promo" data-id="${p.id}">Edit</button><button class="btn btn-sm btn-danger delete-promo" data-id="${p.id}">Delete</button></td></tr>`}).join('')
+      <td><button class="btn btn-sm btn-primary edit-promo" data-id="${esc(p.id)}">Edit</button><button class="btn btn-sm btn-danger delete-promo" data-id="${esc(p.id)}">Delete</button></td></tr>`}).join('')
     t.querySelectorAll('.edit-promo').forEach(b => b.addEventListener('click', () => editPromo(b.dataset.id)))
     t.querySelectorAll('.delete-promo').forEach(b => b.addEventListener('click', () => deletePromo(b.dataset.id)))
   } catch(err) { t.innerHTML=`<tr><td colspan="8"><div class="alert alert-danger">${err.message}</div></td></tr>` }
@@ -43,11 +48,12 @@ document.getElementById('promoForm')?.addEventListener('submit', async (e) => {
     if (expiry) d.expires_at = expiry
     if (id) d.id = id
     await API.adminPromos(id ? 'update' : 'create', d)
+    notifyOk(id ? 'Promo code updated' : 'Promo code created')
     loadPromos()
     e.target.reset()
     document.getElementById('promoId').value = ''
     closePromoModal()
-  } catch (err) { alert('Error: ' + err.message) }
+  } catch (err) { notifyErr(err.message) }
 })
 async function editPromo(id) {
   try {
@@ -63,10 +69,10 @@ async function editPromo(id) {
     document.getElementById('promoStatus').value = p.is_active ? 'Active' : 'Inactive'
     document.getElementById('promoModalTitle').textContent = 'Edit Promo Code'
     document.getElementById('promoModal').style.display = 'flex'
-  } catch (err) { alert('Error: ' + err.message) }
+  } catch (err) { notifyErr(err.message) }
 }
 async function deletePromo(id) {
-  if (!confirm('Delete?')) return
-  try { await API.adminPromos('delete', { id }); loadPromos() } catch (err) { alert('Error: ' + err.message) }
+  if (!await uiConfirm('Delete this promo code?', { title: 'Delete promo code', confirmText: 'Delete' })) return
+  try { await API.adminPromos('delete', { id }); notifyOk('Promo code deleted'); loadPromos() } catch (err) { notifyErr(err.message) }
 }
 document.addEventListener('DOMContentLoaded', loadPromos)

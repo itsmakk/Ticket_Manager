@@ -1,30 +1,36 @@
 // Auth — ONLY uses Supabase Auth directly (shares client from api.js)
 // Profile data queries go through Edge Functions via API.getProfile()
 function getAuthSB() { return window.__apiSupabase }
+function authBtn(form) { return form.querySelector('button[type="submit"], button:not([type])') }
+function authError(alertDiv, message) {
+  if (window.UI) UI.showAlert(alertDiv, message, 'danger'); else alertDiv.innerHTML = `<div class="alert alert-danger">${message}</div>`
+  if (window.UI) UI.toast(message, 'error')
+}
+
 const loginForm = document.getElementById('loginForm')
 if (loginForm) {
   loginForm.addEventListener('submit', async (e) => {
     e.preventDefault()
-    const email = document.getElementById('email').value
+    const email = document.getElementById('email').value.trim()
     const password = document.getElementById('password').value
     const alertDiv = document.getElementById('alert')
+    const btn = authBtn(loginForm)
+    if (window.UI) UI.setBtnLoading(btn, true, 'Signing in…')
     const sb = getAuthSB()
-    const { data, error } = await sb.auth.signInWithPassword({ email, password })
-    if (error) { alertDiv.innerHTML = `<div class="alert alert-danger">${error.message}</div>`; return }
-    localStorage.setItem('sb-token', data.session?.access_token)
-    localStorage.setItem('sb-user', JSON.stringify(data.user))
-    const params = new URLSearchParams(window.location.search)
-    if (params.get('redirect')) { window.location.href = params.get('redirect'); return }
     try {
-      const profile = await API.getProfile()
-      const roleHome = {
-        admin: '/admin/index.html',
-        counter: '/admin/counter.html',
-        scanner: '/scanner/index.html',
-      }
-      window.location.href = roleHome[profile?.role] || '/'
-    } catch {
-      window.location.href = '/'
+      const { data, error } = await sb.auth.signInWithPassword({ email, password })
+      if (error) { authError(alertDiv, error.message); return }
+      localStorage.setItem('sb-token', data.session?.access_token)
+      localStorage.setItem('sb-user', JSON.stringify(data.user))
+      const params = new URLSearchParams(window.location.search)
+      if (params.get('redirect')) { window.location.href = params.get('redirect'); return }
+      try {
+        const profile = await API.getProfile()
+        const roleHome = { admin: '/admin/index.html', counter: '/admin/counter.html', scanner: '/scanner/index.html' }
+        window.location.href = roleHome[profile?.role] || '/'
+      } catch { window.location.href = '/' }
+    } finally {
+      if (window.UI) UI.setBtnLoading(btn, false)
     }
   })
 }
@@ -32,27 +38,46 @@ const registerForm = document.getElementById('registerForm')
 if (registerForm) {
   registerForm.addEventListener('submit', async (e) => {
     e.preventDefault()
-    const fullName = document.getElementById('fullName').value
-    const mobile = document.getElementById('mobile').value
-    const email = document.getElementById('email').value
+    const fullName = document.getElementById('fullName').value.trim()
+    const mobile = document.getElementById('mobile').value.trim()
+    const email = document.getElementById('email').value.trim()
     const password = document.getElementById('password').value
     const alertDiv = document.getElementById('alert')
+    const btn = authBtn(registerForm)
+    if (window.UI) UI.setBtnLoading(btn, true, 'Creating account…')
     const sb = getAuthSB()
-    const { error } = await sb.auth.signUp({ email, password, options: { data: { full_name: fullName, mobile } } })
-    if (error) { alertDiv.innerHTML = `<div class="alert alert-danger">${error.message}</div>`; return }
-    alertDiv.innerHTML = '<div class="alert alert-success">Registration successful! Check your email to verify.</div>'
+    try {
+      const { error } = await sb.auth.signUp({ email, password, options: { data: { full_name: fullName, mobile } } })
+      if (error) { authError(alertDiv, error.message); return }
+      const ok = 'Registration successful! Check your email to verify your account.'
+      if (window.UI) { UI.showAlert(alertDiv, ok, 'success'); UI.toast('Account created — check your email.', 'success') }
+      else alertDiv.innerHTML = `<div class="alert alert-success">${ok}</div>`
+      registerForm.reset()
+    } finally {
+      if (window.UI) UI.setBtnLoading(btn, false)
+    }
   })
 }
 const forgotForm = document.getElementById('forgotForm')
 if (forgotForm) {
   forgotForm.addEventListener('submit', async (e) => {
     e.preventDefault()
-    const email = document.getElementById('email').value
+    const email = document.getElementById('email').value.trim()
     const alertDiv = document.getElementById('alert')
+    const btn = authBtn(forgotForm)
+    if (window.UI) UI.setBtnLoading(btn, true, 'Sending…')
     const sb = getAuthSB()
-    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: `${CONFIG.SITE_URL}/login.html` })
-    if (error) { alertDiv.innerHTML = `<div class="alert alert-danger">${error.message}</div>` }
-    else { alertDiv.innerHTML = '<div class="alert alert-success">Reset link sent to your email.</div>' }
+    try {
+      const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: `${CONFIG.SITE_URL}/login.html` })
+      if (error) { authError(alertDiv, error.message) }
+      else {
+        const ok = 'Reset link sent to your email.'
+        if (window.UI) { UI.showAlert(alertDiv, ok, 'success'); UI.toast(ok, 'success') }
+        else alertDiv.innerHTML = `<div class="alert alert-success">${ok}</div>`
+      }
+    } finally {
+      if (window.UI) UI.setBtnLoading(btn, false)
+    }
   })
 }
 // Toggle nav based on login state + attach logout handler

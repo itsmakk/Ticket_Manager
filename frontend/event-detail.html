@@ -9,6 +9,7 @@
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="/js/qrcode.min.js"></script>
   <script src="/js/config.js"></script>
+  <script src="/js/ui.js"></script>
   <script src="/js/api.js"></script>
   <script src="/js/auth.js"></script>
 </head>
@@ -57,11 +58,12 @@
               <p style="color:var(--text-secondary);">Select seats to see summary.</p>
             </div>
             <div id="promoSection" style="margin:1rem 0;">
+              <label for="promoInput" class="form-label">Promo code</label>
               <div style="display:flex;gap:0.5rem;">
-                <input class="form-input" id="promoInput" placeholder="Promo code" />
-                <button class="btn btn-outline btn-sm" onclick="applyPromo()">Apply</button>
+                <input class="form-input" id="promoInput" placeholder="Enter code" autocomplete="off" autocapitalize="characters" />
+                <button class="btn btn-outline btn-sm" id="applyPromoBtn" onclick="applyPromo()">Apply</button>
               </div>
-              <div id="promoMessage" style="font-size:0.85rem;margin-top:0.3rem;"></div>
+              <div id="promoMessage" style="font-size:0.85rem;margin-top:0.3rem;" aria-live="polite"></div>
             </div>
             <button class="btn btn-success btn-block btn-lg" id="proceedBtn" onclick="proceedToPayment()" disabled>Proceed to Payment</button>
             <div id="paymentSection" style="display:none;margin-top:1rem;">

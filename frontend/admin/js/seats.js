@@ -64,16 +64,19 @@ async function generateSeats() {
   try {
     const { rows, seatsPerRow, categories } = getLayoutInput()
     renderLayout(rows, seatsPerRow, categories)
-    if (!confirm('Save this as the auditorium layout for every show? Existing layout allocations will be replaced.')) return
+    const ok = window.UI
+      ? await UI.confirm({ title: 'Save auditorium layout', message: 'Save this as the auditorium layout for every show? Existing layout allocations will be replaced.', confirmText: 'Save layout', danger: false })
+      : confirm('Save this as the auditorium layout for every show? Existing layout allocations will be replaced.')
+    if (!ok) return
     const result = await API.adminSeats('generate', {
       rows,
       seats_per_row: seatsPerRow,
       categories,
     })
-    alert(`Auditorium layout saved with ${result.count} seats.`)
+    if (window.UI) UI.toast(`Layout saved — ${result.count} seats.`, 'success'); else alert(`Auditorium layout saved with ${result.count} seats.`)
     await loadSeatLayout()
   } catch (err) {
-    alert(err.message)
+    if (window.UI) UI.toast(err.message, 'error'); else alert(err.message)
   }
 }
 

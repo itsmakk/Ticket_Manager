@@ -104,7 +104,14 @@ function apiTimeout(ms = 10000) {
   return new Promise((_, reject) => setTimeout(() => reject(new Error('API request timed out')), ms))
 }
 
+function showSkeletons(id, n, kind) {
+  const el = document.getElementById(id)
+  if (el && window.UI) el.innerHTML = UI.skeletonCards(n, kind)
+}
+
 async function loadHomepageEvents() {
+  showSkeletons('nowShowingGrid', 4)
+  showSkeletons('upcomingGrid', 3)
   try {
     if (typeof API === 'undefined' || !API.getEvents) {
       throw new Error('API not available — check network connection')
@@ -130,14 +137,14 @@ async function loadHomepageEvents() {
     if (nowGrid) {
       nowGrid.innerHTML = nowShowing.length
         ? nowShowing.map(e => buildCardHTML(e)).join('')
-        : '<p style="color:var(--text-secondary);padding:1rem 0;">No events currently showing.</p>'
+        : '<p class="text-muted" style="padding:1rem 0;">No events currently showing.</p>'
     }
 
     const upGrid = document.getElementById('upcomingGrid')
     if (upGrid) {
       upGrid.innerHTML = upcoming.length
         ? upcoming.map(e => buildGridCardHTML(e)).join('')
-        : '<div class="card" style="text-align:center;padding:3rem;grid-column:1/-1;"><p style="color:var(--text-secondary);">No upcoming events.</p></div>'
+        : '<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon">📅</div><div class="empty-state-title">No upcoming events</div><p>Check back soon for new shows.</p></div>'
     }
   } catch (err) {
     const grids = ['nowShowingGrid', 'upcomingGrid', 'eventsGrid']
@@ -149,6 +156,7 @@ async function loadHomepageEvents() {
 }
 
 async function loadEventsPage() {
+  showSkeletons('eventsGrid', 6)
   try {
     if (typeof API === 'undefined' || !API.getEvents) {
       throw new Error('API not available — check network connection')
@@ -160,7 +168,7 @@ async function loadEventsPage() {
     const grid = document.getElementById('eventsGrid')
     if (!grid) return
     if (!events.length) {
-      grid.innerHTML = '<div class="card" style="text-align:center;padding:3rem;grid-column:1/-1;"><p style="color:var(--text-secondary);">No events available.</p></div>'
+      grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon">🎭</div><div class="empty-state-title">No events available</div><p>New shows will appear here once published.</p></div>'
       return
     }
     grid.innerHTML = events.map(e => buildGridCardHTML(e)).join('')

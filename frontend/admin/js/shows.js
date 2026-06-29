@@ -1,4 +1,9 @@
 let showsPage = 1, showsTotal = 0, showsLimit = 20, eventFilterPopulated = false
+const esc = (s) => window.UI ? UI.escapeHtml(s) : String(s == null ? '' : s)
+function notifyErr(m) { if (window.UI) UI.toast(m, 'error'); else alert(m) }
+function notifyOk(m) { if (window.UI) UI.toast(m, 'success') }
+function notifyWarn(m) { if (window.UI) UI.toast(m, 'warning'); else alert(m) }
+async function uiConfirm(msg, opts) { return window.UI ? UI.confirm(Object.assign({ message: msg }, opts)) : confirm(msg) }
 function showShowModal() {
   document.getElementById('showModalTitle').textContent = 'New Show'
   document.getElementById('showId').value = ''
@@ -14,7 +19,7 @@ async function populateEventDropdown(selectId, selectedId) {
   const sel = document.getElementById(selectId)
   if (!sel) return
   const events = await API.adminEvents('list', { page: 1, limit: 1000 })
-  sel.innerHTML = '<option value="">Select Event</option>' + (events?.data || events || []).map(e => `<option value="${e.id}">${e.title}</option>`).join('')
+  sel.innerHTML = '<option value="">Select Event</option>' + (events?.data || events || []).map(e => `<option value="${esc(e.id)}">${esc(e.title)}</option>`).join('')
   if (selectedId) sel.value = selectedId
 }
 
@@ -36,14 +41,14 @@ async function loadShows(page) {
       return
     }
     tbody.innerHTML = shows.map(s => `<tr>
-      <td>${s.event_title||'-'}</td>
-      <td>${s.show_date}</td>
-      <td>${s.start_time}</td>
-      <td>₹${s.price_premium}</td>
-      <td>₹${s.price_gold}</td>
-      <td>₹${s.price_silver}</td>
-      <td><span class="badge badge-${s.status==='Active'?'success':s.status==='Cancelled'?'danger':'warning'}">${s.status}</span></td>
-      <td><button class="btn btn-sm btn-primary edit-show" data-id="${s.id}">Edit</button><button class="btn btn-sm btn-danger delete-show" data-id="${s.id}">Delete</button></td>
+      <td>${esc(s.event_title||'-')}</td>
+      <td>${esc(s.show_date)}</td>
+      <td>${esc(s.start_time)}</td>
+      <td>₹${esc(s.price_premium)}</td>
+      <td>₹${esc(s.price_gold)}</td>
+      <td>₹${esc(s.price_silver)}</td>
+      <td><span class="badge badge-${s.status==='Active'?'success':s.status==='Cancelled'?'danger':'warning'}">${esc(s.status)}</span></td>
+      <td><button class="btn btn-sm btn-primary edit-show" data-id="${esc(s.id)}">Edit</button><button class="btn btn-sm btn-danger delete-show" data-id="${esc(s.id)}">Delete</button></td>
     </tr>`).join('')
     tbody.querySelectorAll('.edit-show').forEach(b => b.addEventListener('click', () => editShow(b.dataset.id)))
     tbody.querySelectorAll('.delete-show').forEach(b => b.addEventListener('click', () => deleteShow(b.dataset.id)))
@@ -66,20 +71,21 @@ document.getElementById('showForm')?.addEventListener('submit', async (e) => {
       booking_cutoff_minutes: 30,
       status: document.getElementById('showStatus').value,
     }
-    if (!d.event_id) return alert('Select an event')
+    if (!d.event_id) { notifyWarn('Please select an event'); return }
     if (id) d.id = id
     await API.adminShows(id ? 'update' : 'create', d)
+    notifyOk(id ? 'Show updated' : 'Show created')
     loadShows()
     e.target.reset()
     document.getElementById('showId').value = ''
     closeShowModal()
-  } catch (err) { alert('Error: ' + err.message) }
+  } catch (err) { notifyErr(err.message) }
 })
 async function editShow(id) {
   try {
     const all = await API.adminShows('list', { page: 1, limit: 100 })
     const r = (all?.data || all || []).find(x => x.id === id)
-    if (!r) { alert('Show not found'); return }
+    if (!r) { notifyErr('Show not found'); return }
     document.getElementById('showModalTitle').textContent = 'Edit Show'
     document.getElementById('showModal').style.display = 'flex'
     await populateEventDropdown('showEventId', r.event_id)
@@ -91,10 +97,10 @@ async function editShow(id) {
     document.getElementById('priceGold').value = r.price_gold
     document.getElementById('priceSilver').value = r.price_silver
     document.getElementById('showStatus').value = r.status
-  } catch (err) { alert('Error: ' + err.message) }
+  } catch (err) { notifyErr(err.message) }
 }
 async function deleteShow(id) {
-  if (!confirm('Delete?')) return
-  try { await API.adminShows('delete', { id }); loadShows() } catch (err) { alert('Error: ' + err.message) }
+  if (!await uiConfirm('Delete this show? This cannot be undone.', { title: 'Delete show', confirmText: 'Delete' })) return
+  try { await API.adminShows('delete', { id }); notifyOk('Show deleted'); loadShows() } catch (err) { notifyErr(err.message) }
 }
 document.addEventListener('DOMContentLoaded', () => loadShows())

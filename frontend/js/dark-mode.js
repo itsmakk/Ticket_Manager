@@ -54,9 +54,24 @@
     set(preferred());
   }
 
+  function markActiveNav() {
+    var path = window.location.pathname.replace(/\/index\.html$/, '/');
+    var links = document.querySelectorAll('.admin-sidebar a');
+    links.forEach(function (a) {
+      var href = a.getAttribute('href') || '';
+      var norm = href.replace(/\/index\.html$/, '/');
+      if (norm && norm === path) {
+        a.classList.add('active');
+        a.setAttribute('aria-current', 'page');
+      }
+    });
+  }
+
+  function init() { injectButton(); markActiveNav(); }
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', injectButton);
+    document.addEventListener('DOMContentLoaded', init);
   } else {
-    injectButton();
+    init();
   }
 })();

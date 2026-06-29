@@ -9,6 +9,8 @@
 
 let cachedShowPricing = null  // { price_premium, price_gold, price_silver }
 const selectedCounterSeats = []   // [{ id, seat_number, category }]
+const esc = (s) => window.UI ? UI.escapeHtml(s) : String(s == null ? '' : s)
+function notify(m, type) { if (window.UI) UI.toast(m, type); else alert(m) }
 
 async function loadCounterEvents() {
   try {
@@ -17,7 +19,7 @@ async function loadCounterEvents() {
     const shows = await API.counterShows()
     sel.innerHTML = '<option value="">Select Show</option>' + (shows || []).map(show => {
       const eventTitle = show.events?.title || 'Event'
-      return `<option value="${show.id}">${eventTitle} — ${show.show_date} ${show.start_time}</option>`
+      return `<option value="${esc(show.id)}">${esc(eventTitle)} — ${esc(show.show_date)} ${esc(show.start_time)}</option>`
     }).join('')
   } catch (err) {
     console.error(err)
@@ -155,10 +157,10 @@ document.getElementById('counterForm')?.addEventListener('submit', async (e) => 
     const email = document.getElementById('counterEmail').value.trim()
     const payment = document.getElementById('counterPayment').value
 
-    if (!sid) return alert('Please select a show')
-    if (!name || !mobile) return alert('Customer name and mobile are required')
-    if (!selectedCounterSeats.length) return alert('Select at least one seat')
-    if (!/^\d{10}$/.test(mobile)) return alert('Mobile number must be exactly 10 digits')
+    if (!sid) { notify('Please select a show', 'warning'); return }
+    if (!name || !mobile) { notify('Customer name and mobile are required', 'warning'); return }
+    if (!selectedCounterSeats.length) { notify('Select at least one seat', 'warning'); return }
+    if (!/^\d{10}$/.test(mobile)) { notify('Mobile number must be exactly 10 digits', 'warning'); return }
 
     if (btn) { btn.disabled = true; btn.textContent = 'Booking…' }
 
@@ -211,7 +213,7 @@ document.getElementById('counterForm')?.addEventListener('submit', async (e) => 
       customer_email: email || undefined,
     })
 
-    alert(`✅ Booking successful!\n${selected.length} ticket(s) for ${name}\nTotal: ₹${total} (${payment})`)
+    notify(`Booking successful — ${selected.length} ticket(s) for ${name}, ₹${total} (${payment})`, 'success')
 
     // BUG-C4 FIX: Reset form and seat selection after successful booking
     document.getElementById('counterName').value = ''
@@ -220,7 +222,7 @@ document.getElementById('counterForm')?.addEventListener('submit', async (e) => 
     resetSeatSelection()
     await loadCounterSeats()   // Reload seat map to reflect booked status
   } catch (err) {
-    alert('Booking failed: ' + err.message)
+    notify('Booking failed: ' + err.message, 'error')
     try {
       const sid = document.getElementById('counterShow')?.value
       if (sid && selectedCounterSeats.length) {

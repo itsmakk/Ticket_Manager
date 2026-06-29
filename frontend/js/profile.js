@@ -28,18 +28,22 @@ function cancelEdit() {
   document.getElementById('editMobile').value = profile.mobile || ''
 }
 
+const esc = (s) => window.UI ? UI.escapeHtml(s) : String(s == null ? '' : s)
+function notify(msg, type) { if (window.UI) UI.toast(msg, type) }
+
 document.getElementById('profileEditForm').addEventListener('submit', async (e) => {
   e.preventDefault()
   const name = document.getElementById('editName').value.trim()
   const email = document.getElementById('editEmail').value.trim()
   const mobile = document.getElementById('editMobile').value.trim()
   const alertDiv = document.getElementById('profileAlert')
+  const btn = e.target.querySelector('button[type="submit"]')
+  if (mobile && !/^[0-9]{10}$/.test(mobile)) {
+    if (window.UI) UI.showAlert(alertDiv, 'Mobile must be a 10-digit number.', 'danger'); notify('Mobile must be 10 digits.', 'error'); return
+  }
+  if (window.UI) UI.setBtnLoading(btn, true, 'Saving…')
   try {
-    await API.updateProfile({
-      full_name: name,
-      email: email || undefined,
-      mobile: mobile || undefined,
-    })
+    await API.updateProfile({ full_name: name, email: email || undefined, mobile: mobile || undefined })
     const sb = getSB()
     const authUpdates = {}
     if (name && name !== profile.full_name) authUpdates.data = { ...authUpdates.data, full_name: name }
@@ -50,27 +54,38 @@ document.getElementById('profileEditForm').addEventListener('submit', async (e) 
       if (error) throw error
       if (authData?.user) localStorage.setItem('sb-user', JSON.stringify(authData.user))
     }
-    alertDiv.innerHTML = '<div class="alert alert-success">Profile updated successfully!</div>'
+    if (window.UI) UI.showAlert(alertDiv, 'Profile updated successfully!', 'success')
+    else alertDiv.innerHTML = '<div class="alert alert-success">Profile updated successfully!</div>'
+    notify('Profile updated', 'success')
     cancelEdit()
     await loadProfile()
   } catch (err) {
-    alertDiv.innerHTML = `<div class="alert alert-danger">${err.message}</div>`
+    if (window.UI) UI.showAlert(alertDiv, err.message, 'danger'); else alertDiv.innerHTML = `<div class="alert alert-danger">${err.message}</div>`
+    notify(err.message, 'error')
+  } finally {
+    if (window.UI) UI.setBtnLoading(btn, false)
   }
 })
 
 async function changePassword() {
   const input = document.getElementById('newPassword')
   const pr = document.getElementById('passwordResult')
+  const btn = document.getElementById('changePwBtn')
   const pw = input.value.trim()
-  if (pw.length < 6) { pr.innerHTML = '<p style="color:var(--danger);font-size:0.9rem;">Password must be at least 6 characters.</p>'; return }
+  if (pw.length < 6) { pr.innerHTML = '<p class="field-error">Password must be at least 6 characters.</p>'; return }
+  if (window.UI) UI.setBtnLoading(btn, true, 'Updating…')
   try {
     const sb = getSB()
     const { error } = await sb.auth.updateUser({ password: pw })
     if (error) throw error
     input.value = ''
     pr.innerHTML = '<p style="color:var(--success);font-size:0.9rem;">Password updated successfully!</p>'
+    notify('Password updated', 'success')
   } catch (err) {
-    pr.innerHTML = `<p style="color:var(--danger);font-size:0.9rem;">${err.message}</p>`
+    pr.innerHTML = `<p class="field-error">${esc(err.message)}</p>`
+    notify(err.message, 'error')
+  } finally {
+    if (window.UI) UI.setBtnLoading(btn, false)
   }
 }
 
@@ -79,19 +94,17 @@ async function loadBookings() {
   try {
     const bookings = await API.getBookings()
     if (!bookings?.length) {
-      container.innerHTML = '<div style="text-align:center;padding:2rem 0;"><p style="color:var(--text-secondary);margin-bottom:1rem;">No bookings yet.</p><a href="/events.html" class="btn btn-primary">Browse Events</a></div>'; return
+      container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🎟️</div><div class="empty-state-title">No bookings yet</div><p>Your booked tickets will appear here.</p><a href="/events.html" class="btn btn-primary">Browse Events</a></div>'; return
     }
-    container.innerHTML = bookings.map(b => `<div style="padding:0.75rem 0;border-bottom:1px solid var(--border);">
-      <div style="display:flex;justify-content:space-between;align-items:start;gap:0.5rem;">
-        <div>
-          <strong>${b.events?.title||'Event'}</strong>
-          <p style="font-size:0.85rem;color:var(--text-secondary);">${b.shows?.show_date} ${b.shows?.start_time}</p>
-          <p style="font-size:0.85rem;">₹${b.total_amount} <span class="badge badge-${b.status==='Confirmed'?'success':'danger'}">${b.status}</span></p>
-        </div>
-        <div style="text-align:right;">${(b.tickets||[]).map(t => `<a href="/ticket.html?ticket_id=${t.ticket_id}" class="btn btn-sm btn-outline" style="margin-bottom:0.25rem;display:inline-block;">${t.seat ? 'Ticket '+t.seat.seat_number : 'View'}</a>`).join('')||'<span style="font-size:0.85rem;color:var(--text-secondary);">No tickets</span>'}</div>
+    container.innerHTML = bookings.map(b => `<div class="booking-item">
+      <div class="booking-item-info">
+        <strong>${esc(b.events?.title || 'Event')}</strong>
+        <p class="text-muted" style="font-size:0.85rem;">${esc(b.shows?.show_date || '')} ${esc(b.shows?.start_time || '')}</p>
+        <p style="font-size:0.85rem;">₹${esc(b.total_amount)} <span class="badge badge-${b.status === 'Confirmed' ? 'success' : 'danger'}">${esc(b.status)}</span></p>
       </div>
+      <div class="booking-item-actions">${(b.tickets || []).map(t => `<a href="/ticket.html?ticket_id=${esc(t.ticket_id)}" class="btn btn-sm btn-outline">${t.seat ? 'Seat ' + esc(t.seat.seat_number) : 'View'}</a>`).join('') || '<span class="text-muted" style="font-size:0.85rem;">No tickets</span>'}</div>
     </div>`).join('')
-  } catch (err) { container.innerHTML = `<div class="alert alert-danger">${err.message}</div>` }
+  } catch (err) { container.innerHTML = `<div class="alert alert-danger" role="alert">${esc(err.message)}</div>` }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
