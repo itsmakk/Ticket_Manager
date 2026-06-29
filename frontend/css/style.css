@@ -1181,7 +1181,7 @@ tr:hover { background: var(--row-hover-bg); }
   }
   .nav.nav-open { display: flex; }
   .nav a { padding: 0.6rem 0.75rem; }
-  .nav #userName { padding: 0.6rem 0.75rem; }
+
   .header { position: sticky; top: 0; z-index: 100; }
 
   .hero-carousel { height: 380px; }

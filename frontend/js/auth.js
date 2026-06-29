@@ -86,20 +86,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const uRaw = localStorage.getItem('sb-user')
   const lb = document.getElementById('loginBtn'); const rb = document.getElementById('registerBtn')
   const pl = document.getElementById('profileLink'); const lo = document.getElementById('logoutBtn')
-  const un = document.getElementById('userName')
   let user = null
   try { if (t && uRaw) user = JSON.parse(uRaw) } catch {}
   if (user) {
-    const name = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User'
     if (lb) lb.style.display = 'none'
     if (rb) rb.style.display = 'none'
     if (pl) pl.style.display = 'inline-block'
-    if (un) { un.textContent = name; un.style.display = 'inline-block' }
   } else {
     if (lb) lb.style.display = 'inline-block'
     if (rb) rb.style.display = 'inline-block'
     if (pl) pl.style.display = 'none'
-    if (un) un.style.display = 'none'
   }
   // Show sidebar links based on role (hide everything first to avoid flash)
   if (t && user) {
