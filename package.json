@@ -3,6 +3,7 @@
   "version": "1.0.4",
   "private": true,
   "description": "Chatrapati Shivaji Maharaj Auditorium Ticket Booking & Management System",
+  "repository": "github:itsmakk/Ticket_Manager",
   "scripts": {
     "dev": "npx serve .",
     "build": "echo 'Static site - no build required'"

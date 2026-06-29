@@ -24,7 +24,7 @@ Deno.serve(async (req) => {
     if (!isAdmin && !scannerAllowed && !counterAllowed) throw new Error('Unauthorized')
 
     const page = Math.max(1, params.page || 1)
-    const limit = Math.min(Math.max(1, params.limit || 20), 100)
+    const limit = Math.min(Math.max(1, params.limit || 20), 1000)
 
     function paginatedQuery(query: any) {
       const from = (page - 1) * limit
@@ -224,11 +224,13 @@ Deno.serve(async (req) => {
         const { count } = await supabase.from('audit_logs').select('*', { head: true, count: 'exact' })
         const auditLimit = Math.min(Math.max(1, params.limit || 50), 200)
         const from = (page - 1) * auditLimit
-        const { data } = await supabase.from('audit_logs').select('*, profiles:user_id(full_name)').order('created_at', { ascending: false }).range(from, from + auditLimit - 1)
-        const enriched = (data || []).map(log => {
-          const p = Array.isArray(log.profiles) ? log.profiles[0] : log.profiles
-          return { ...log, user_name: p?.full_name || log.user_id?.slice(0,8) || '-', profiles: undefined }
-        })
+        const { data } = await supabase.from('audit_logs').select('*').order('created_at', { ascending: false }).range(from, from + auditLimit - 1)
+        const userIds = [...new Set((data || []).map(l => l.user_id).filter(Boolean))]
+        const { data: profiles } = userIds.length ? await supabase.from('profiles').select('id, full_name').in('id', userIds) : { data: [] }
+        const profileMap = Object.fromEntries((profiles || []).map(p => [p.id, p.full_name]))
+        const enriched = (data || []).map(log => ({
+          ...log, user_name: profileMap[log.user_id] || log.user_id?.slice(0,8) || '-'
+        }))
         return corsResponse({ data: enriched, total: count || 0, page, limit: auditLimit })
       }
 
