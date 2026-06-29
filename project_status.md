@@ -13,6 +13,7 @@
 | v0.3.0  | 2026-06-14 | Phase 3-13: Database schema, Auth, Events/Shows, Seating, Booking, QR, Admin Panel, Reports, Audit |
 | v0.4.0  | 2026-06-14 | Phase 16: Deployment guide & final project documentation |
 | v0.5.0  | 2026-06-14 | Docker/Container support (Dockerfile, docker-compose, nginx) |
+| v0.20.1 | 2026-06-29 | Deploy: admin-query limit fix + audit log enrichment fix; get-events status field; pushed to GitHub |
 | v0.6.0  | 2026-06-14 | Edge Functions architecture, API layer, project restructured into frontend/backend/database |
 | v0.6.1  | 2026-06-14 | BUG-001: Enforced server-side counter booking authorization |
 | v0.6.2  | 2026-06-14 | BUG-002: Added explicit authorization around service-role Edge Functions |
@@ -50,7 +51,7 @@
 
 ## Current Phase
 
-**Poster image upload + YouTube trailer + GitHub Actions CI/CD — v0.20.0**
+**Edge Function deployment + GitHub push — v0.20.1**
 
 ---
 
