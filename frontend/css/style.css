@@ -799,32 +799,6 @@ tr:hover { background: var(--row-hover-bg); }
   flex-wrap: wrap;
 }
 
-/* ── Hero Text Section ── */
-.hero-text-section {
-  background: linear-gradient(135deg, var(--hero-from) 0%, var(--hero-to) 100%);
-  color: #fff;
-  text-align: center;
-  padding: 3rem 1rem;
-}
-.hero-text-section h1 {
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-}
-.hero-text-section .hero-tagline {
-  font-size: 1.1rem;
-  font-style: italic;
-  margin-bottom: 1rem;
-  color: var(--primary);
-}
-.hero-text-section .hero-desc {
-  font-size: 1rem;
-  opacity: 0.9;
-  max-width: 700px;
-  margin: 0 auto;
-  line-height: 1.6;
-}
-
 .btn-outline-light {
   background: transparent;
   border: 2px solid #fff;
@@ -1211,8 +1185,8 @@ tr:hover { background: var(--row-hover-bg); }
   .header { position: sticky; top: 0; z-index: 100; }
 
   .hero-carousel { height: 380px; }
-  .hero-text-section { padding: 2rem 1rem; }
-  .hero-text-section h1 { font-size: 1.5rem; }
+  .carousel-content h1 { font-size: 1.5rem; }
+  .carousel-content p { font-size: 0.9rem; }
   .carousel-btn { width: 36px; height: 36px; font-size: 1.5rem; }
   .carousel-prev { left: 0.5rem; }
   .carousel-next { right: 0.5rem; }
