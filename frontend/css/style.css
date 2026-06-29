@@ -1170,9 +1170,9 @@ tr:hover { background: var(--row-hover-bg); }
     display: none;
     position: absolute;
     top: 100%;
-    left: 0;
+    right: 0;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: flex-end;
     background: var(--header-bg);
     padding: 0.5rem 1rem 1rem;
     box-shadow: var(--shadow-lg);
