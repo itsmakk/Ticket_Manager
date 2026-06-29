@@ -268,6 +268,7 @@ Deno.serve(async (req) => {
           totalAmount: String(effectiveAmount),
           bookingId,
           customerName: customer_name || userProfile?.full_name || 'Customer',
+          firstTicketId: tickets[0]?.ticket_id,
         }))
       }
     } catch (e) { console.error('Confirmation email failed:', e) }

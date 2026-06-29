@@ -30,6 +30,7 @@ export function buildConfirmationHtml(params: {
   totalAmount: string
   bookingId: string
   customerName?: string
+  firstTicketId?: string
 }): string {
   const ticketRows = params.tickets.map(t => `
     <tr>
@@ -37,7 +38,7 @@ export function buildConfirmationHtml(params: {
         <img src="${t.qrDataUrl}" alt="QR" width="100" height="100" style="display:block;margin:0 auto;border-radius:4px;" />
       </td>
       <td style="padding:12px;border-bottom:1px solid #e5e7eb;font-family:monospace;font-size:13px;color:#475569;">${t.ticketId.slice(0, 12)}...</td>
-      <td style="padding:12px;border-bottom:1px solid #e5e7eb;font-size:14px;">${t.rowLabel}${t.seatNumber}</td>
+      <td style="padding:12px;border-bottom:1px solid #e5e7eb;font-size:14px;">${t.seatNumber}</td>
       <td style="padding:12px;border-bottom:1px solid #e5e7eb;font-size:14px;text-transform:capitalize;">${t.category}</td>
     </tr>`).join('')
 
@@ -73,7 +74,7 @@ export function buildConfirmationHtml(params: {
       <tbody>${ticketRows}</tbody>
     </table>
     <div style="text-align:center;margin:24px 0;">
-      <a href="${Deno.env.get('SITE_URL') || ''}/profile.html" class="btn">View My Tickets</a>
+      <a href="${Deno.env.get('SITE_URL') || ''}/ticket.html?ticket_id=${params.firstTicketId || ''}" class="btn">View Ticket</a>
     </div>
     <p style="font-size:13px;color:#64748b;margin:0;">Present the QR code at the venue entrance for scanning. Each ticket grants entry for one person.</p>
   </div>
